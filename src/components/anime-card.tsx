@@ -51,7 +51,7 @@ const AnimeCard = ({
           variant === "sm" &&
             "w-full h-[12rem] min-[320px]:h-[16.625rem] sm:h-[18rem] max-w-[12.625rem] md:min-w-[12rem]",
           variant === "lg" &&
-            "max-w-[12.625rem] md:max-w-[18.75rem] h-auto md:h-[25rem] shrink-0 lg:w-[18.75rem]",
+            "w-full h-[16.625rem] md:h-[25rem] max-w-[12.625rem] md:max-w-[18.75rem] shrink-0 lg:w-[18.75rem]",
           props.className,
         ])}
       >

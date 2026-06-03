@@ -369,32 +369,28 @@ export const piratexplay = {
           const epNum = parseInt(ep.episode);
           foundMap.set(epNum, {
             number: epNum,
-            episodeId: `${sr.slug}-${ep.season}x${epNum}`,
+            episodeId: `${sr.slug}-${sr.season}x${epNum}`,
             title: `Episode ${epNum}`,
             isFiller: false,
-            season: parseInt(ep.season) || sr.season,
+            season: sr.season,
             image: ep.image || "",
           });
         }
       }
 
       if (isOnePiece) {
+        const s22Slug = `${baseTitle}-season-22-${tmdbId}`;
         const OP_S22_EPISODES: [number, number][] = [[1089, 1138]];
-        for (let s = 1; s <= 22; s++) {
-          const slug = `${baseTitle}-season-${s}-${tmdbId}`;
-          for (const [epStart, epEnd] of OP_S22_EPISODES) {
-            for (let ep = epStart; ep <= epEnd; ep++) {
-              if (!foundMap.has(ep)) {
-                foundMap.set(ep, {
-                  number: ep,
-                  episodeId: `${slug}-${s}x${ep}`,
-                  title: `Episode ${ep}`,
-                  isFiller: false,
-                  season: s,
-                  image: "",
-                });
-              }
-            }
+        for (const [epStart, epEnd] of OP_S22_EPISODES) {
+          for (let ep = epStart; ep <= epEnd; ep++) {
+            foundMap.set(ep, {
+              number: ep,
+              episodeId: `${s22Slug}-22x${ep}`,
+              title: `Episode ${ep}`,
+              isFiller: false,
+              season: 22,
+              image: "",
+            });
           }
         }
       }

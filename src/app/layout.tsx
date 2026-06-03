@@ -21,7 +21,37 @@ const geistSans = localFont({
 const APP_NAME = "KagePlay";
 const APP_DEFAULT_TITLE = "KagePlay - Watch Free Anime Online in HD";
 const APP_DESCRIPTION = "KagePlay - Watch Free Anime Online in HD Quality. Stream anime free in HD with sub & dub options. Browse thousands of titles by genre, year, studio, and more. No ads, no bullshit.";
-const APP_KEYWORDS = ["free anime website", "watch anime online free", "anime streaming", "anime online hd", "sub and dub anime", "free anime no ads", "best free anime website", "anime website online", "anime streaming free hd", "watch anime free"];
+const APP_KEYWORDS = [
+  "free anime streaming sites", "free anime online", "free anime apps", "free anime app",
+  "free anime watch", "free anime watch site", "free anime website", "free anime websites",
+  "free anime site", "free anime sites", "free anime streaming", "watch free anime",
+  "watch free anime online", "free anime websites to watch", "best free anime sites",
+  "best free anime websites", "where to watch free anime", "where can i watch anime for free",
+  "where can i watch free anime", "where to watch anime for free", "where to watch anime free",
+  "where to watch anime online free", "where to watch anime online for free",
+  "where to watch anime for free online", "how to watch anime for free", "how to watch free anime",
+  "is crunchyroll free to watch anime", "where to watch dubbed anime free",
+  "where can i watch anime for free online", "what are some free anime websites",
+  "hianime", "hi anime", "hianime website", "hianime safe", "is hianime safe",
+  "hianime app", "hianime apk", "hianime login", "hianime discord", "hianime to",
+  "hianime not working", "hianime not loading", "hianime down", "is hianime down",
+  "hianime subtitles not working", "what happened to hianime", "hianime replacement",
+  "hianime shutdown", "hianime shut down",
+  "aniwatch", "aniwatch tv", "aniwatch apk", "aniwatch discord", "aniwatch alternatives",
+  "aniwatch alternative", "sites like aniwatch", "websites like aniwatch", "is aniwatch safe",
+  "is aniwatch down", "aniwatch down", "aniwatch not working", "aniwatch not loading",
+  "aniwatch is down", "aniwatch not working 2025", "is aniwatch broken right now",
+  "why is aniwatch not working",
+  "anime", "anime world", "anime planet", "anime dekho", "anime wallpaper",
+  "anime wallpaper 4k", "anime photo", "anime drawing",
+  "hindi anime", "hindi anime zone", "animeflix hindi anime", "hindi anime website",
+  "hindi anime dub", "hindi anime dubbed", "how to watch anime in hindi",
+  "where to watch anime in hindi", "where can i watch anime in hindi",
+  "where to watch anime in hindi for free", "how to watch anime in hindi for free",
+  "how to watch anime for free in hindi", "where can i watch attack on titan anime in hindi",
+  "which anime is available in hindi on netflix", "where to download anime in hindi",
+  "crunchyroll free anime",
+];
 
 export const viewport: Viewport = {
   width: "device-width",
