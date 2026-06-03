@@ -111,7 +111,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "NDKw4kEDMG0csBWqBqRTxTf7-W2jNHa02F9D8siDzn8",
+    google: "c5KhVMd8GyPu1HuYMdWWXlyiYNlpFz2qrJ6LjEGFA2k",
   },
   category: "entertainment",
 };
