@@ -265,24 +265,15 @@ export const piratexplay = {
 
   async search(query: string, _page: number = 1) {
     try {
-      const data = await fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=1`);
-      const totalPages = data?.total_pages || 1;
-      let items = data?.data || [];
-
-      if (totalPages > 1) {
-        const remainingPages = [];
-        for (let p = 2; p <= totalPages; p++) {
-          remainingPages.push(
-            fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=${p}`)
-              .then((r) => r?.data || [])
-              .catch(() => [])
-          );
-        }
-        const extraItems = await Promise.all(remainingPages);
-        for (const extra of extraItems) {
-          items = items.concat(extra);
-        }
+      let items: any[] = [];
+      try {
+        const data = await fetchJson(`${INTERNAL_API}/search?keyword=${encodeURIComponent(query)}`);
+        items = data?.results || data?.series || data?.data || [];
+      } catch {
+        const data = await fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=1`);
+        items = data?.data || [];
       }
+      const totalPages = 1;
 
       const animes = items.map((item: any) => ({
         id: item.tmdb?.url || "",
@@ -515,8 +506,14 @@ export const piratexplay = {
 
   async searchSuggestions(query: string) {
     try {
-      const data = await fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=1`);
-      const items = data?.data || [];
+      let items: any[] = [];
+      try {
+        const data = await fetchJson(`${INTERNAL_API}/search?keyword=${encodeURIComponent(query)}`);
+        items = data?.results || data?.series || data?.data || [];
+      } catch {
+        const data = await fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=1`);
+        items = data?.data || [];
+      }
       const suggestions = items.slice(0, 8).map((item: any) => ({
         id: item.tmdb?.url || "",
         name: item.tmdb?.title || "Unknown",

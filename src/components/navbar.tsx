@@ -59,13 +59,13 @@ const NavBar = () => {
       ])}
       aria-label="Main navigation"
     >
-      <Container className="flex items-center justify-between py-2 gap-4 md:gap-10 lg:gap-20 ">
+      <Container className="flex items-center justify-between py-2 gap-2 sm:gap-4 md:gap-10 lg:gap-20 ">
         <Link
           href={ROUTES.HOME}
           className="flex items-center gap-1 cursor-pointer shrink-0"
           aria-label="KagePlay - Home"
         >
-          <Image src="/logo.png" alt="KagePlay logo" width={115} height={50} className="md:w-[160px] md:h-[70px]" />
+          <Image src="/logo.png" alt="KagePlay logo" width={90} height={39} className="w-[90px] h-[39px] sm:w-[115px] sm:h-[50px] md:w-[160px] md:h-[70px]" />
         </Link>
 
         <div className="relative">
@@ -82,7 +82,7 @@ const NavBar = () => {
           <button
             onClick={() => setProvider(provider === "subdub" ? "hindi" : "subdub")}
             className={cn([
-              "text-sm font-bold px-4 py-2 rounded-full border-2 transition-all duration-300 shrink-0",
+              "text-xs sm:text-sm font-bold px-2 sm:px-4 py-1.5 sm:py-2 rounded-full border-2 transition-all duration-300 shrink-0",
               "hover:scale-105 active:scale-95",
               provider === "hindi"
                 ? "border-orange-500 text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 hover:shadow-lg hover:shadow-orange-500/20"
