@@ -18,15 +18,16 @@ import {
 
 type Props = {
   animeId: string;
+  type?: string;
 };
 
-const AnimeEpisodes = ({ animeId }: Props) => {
+const AnimeEpisodes = ({ animeId, type }: Props) => {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [allEpisodes, setAllEpisodes] = useState<Episode[]>([]);
   const [ranges, setRanges] = useState<string[]>([]);
   const [selectedRange, setSelectedRange] = useState<string>("");
 
-  const { data, isLoading } = useGetAllEpisodes(animeId);
+  const { data, isLoading } = useGetAllEpisodes(animeId, type);
 
   useEffect(() => {
     if (data) {

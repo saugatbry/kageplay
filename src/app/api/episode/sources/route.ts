@@ -5,7 +5,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const episodeId = searchParams.get("animeEpisodeId") as string;
     const serverParam = searchParams.get("server");
-    const category = searchParams.get("category") as "sub" | "dub" | "raw";
+    const category = searchParams.get("category");
 
     let serverId: number | undefined;
     if (serverParam) {
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     const data = await hianime.getEpisodeSources(
       decodeURIComponent(episodeId),
       serverId,
-      category,
+      category || undefined,
     );
 
     return Response.json({ data });

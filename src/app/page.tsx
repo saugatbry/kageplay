@@ -31,7 +31,7 @@ export default function Home() {
         <p className="text-gray-400">The API might be rate-limited or unavailable. Please try refreshing the page.</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-[#e9376b] text-white rounded-lg hover:bg-[#d62d5d]"
+          className="px-6 py-2 bg-[#3b82f6] text-white rounded-lg hover:bg-[#2563eb]"
         >
           Refresh
         </button>
@@ -84,6 +84,24 @@ export default function Home() {
           <AnimeSections
             title={"Upcoming Animes"}
             trendingAnime={(data?.topUpcomingAnimes ?? []) as IAnime[]}
+            loading={isLoading}
+          />
+
+          <AnimeSections
+            title={"Top Airing"}
+            trendingAnime={(data?.topAiringAnimes ?? []) as IAnime[]}
+            loading={isLoading}
+          />
+
+          <AnimeSections
+            title={"Movies"}
+            trendingAnime={(data?.movies ?? []) as IAnime[]}
+            loading={isLoading}
+          />
+
+          <AnimeSections
+            title={"Recently Added"}
+            trendingAnime={(data?.recentlyAdded ?? []) as IAnime[]}
             loading={isLoading}
           />
         </>

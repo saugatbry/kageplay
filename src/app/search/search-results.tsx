@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useGetSearchAnimeResults } from "@/query/get-search-results";
 import Pagination from "@/components/common/pagination";
 import { useAnimeSearchParams } from "@/hooks/use-anime-search-params";
+import { useProviderStore } from "@/store/provider-store";
 import Select from "@/components/common/select";
 import {
   statuses,
@@ -29,8 +30,21 @@ const SearchResults = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const displayPhrase = (params.q || "").replace(/^"+|"+$/g, "").trim();
+  const storeProvider = useProviderStore((s) => s.provider);
+  const provider = params.provider || storeProvider;
 
-  const { data: searchResults, isLoading } = useGetSearchAnimeResults(params);
+  console.log(`[search-page] URL provider="${params.provider}" store="${storeProvider}" resolved="${provider}"`);
+
+  // Sync store provider to URL when it differs (handles navbar toggle while on search page)
+  React.useEffect(() => {
+    if (params.provider && params.provider !== storeProvider) {
+      const _params = new URLSearchParams(searchParams.toString());
+      _params.set("provider", storeProvider);
+      router.replace(`/search?${_params.toString()}`);
+    }
+  }, [storeProvider, params.provider, searchParams, router]);
+
+  const { data: searchResults, isLoading } = useGetSearchAnimeResults({ ...params, provider });
 
   const [filters, setFilters] = React.useState<SearchAnimeParams>({
     q: params.q,
@@ -82,6 +96,8 @@ const SearchResults = () => {
 
     searchParams.delete("page");
 
+    if (provider) searchParams.set("provider", provider);
+
     router.push(`/search?${searchParams.toString()}`);
   };
 
@@ -97,7 +113,7 @@ const SearchResults = () => {
       sort: "",
       genres: "",
     });
-    router.push('/search?q=""');
+    router.push(`/search?q=""&provider=${provider}`);
   };
 
   return (
@@ -158,10 +174,10 @@ const SearchResults = () => {
                 key={genre.value}
                 size="sm"
                 className={cn(
-                  "border border-slate-700 hover:border-[#e9376b] hover:text-[#e9376b] hover:bg-transparent",
-                  "data-[state=on]:border-[#e9376b] data-[state=on]:text-white data-[state=on]:bg-[#e9376b]",
+                  "border border-slate-700 hover:border-[#3b82f6] hover:text-[#3b82f6] hover:bg-transparent",
+                  "data-[state=on]:border-[#3b82f6] data-[state=on]:text-white data-[state=on]:bg-[#3b82f6]",
                   filters.genres?.split(",").includes(genre.value)
-                    ? "bg-[#e9376b] text-white"
+                    ? "bg-[#3b82f6] text-white"
                     : "text-slate-300",
                 )}
               >
@@ -173,7 +189,7 @@ const SearchResults = () => {
         <div className="flex items-center gap-2 mt-4">
           <Button
             size="sm"
-            className="w-[6.25rem] hover:bg-[#e9376b] bg-[#e9376b] text-white"
+            className="w-[6.25rem] hover:bg-[#3b82f6] bg-[#3b82f6] text-white"
             onClick={applyFilters}
           >
             Filter
@@ -221,7 +237,7 @@ const SearchResults = () => {
                     ? "text-orange-400 bg-orange-500/80 border border-orange-500"
                     : anime.provider === "both"
                       ? "text-green-400 bg-green-500/80 border border-green-500"
-                      : "text-pink-400 bg-pink-500/80 border border-pink-500",
+                      : "text-blue-400 bg-blue-500/80 border border-blue-500",
                 ])}>
                   {anime.provider === "hindi" ? "Hindi" : anime.provider === "both" ? "S/D+Hindi" : "S/D"}
                 </span>

@@ -1,6 +1,7 @@
 export interface IEpisodes {
   totalEpisodes: number;
   episodes: Episode[];
+  latestAiredEpisode?: number;
 }
 
 export interface Episode {
@@ -8,6 +9,9 @@ export interface Episode {
   episodeId: string;
   number: number;
   isFiller: boolean;
+  season?: number;
+  image?: string;
+  airingAt?: number;
 }
 
 export interface IEpisodeSource {
@@ -37,6 +41,7 @@ export interface IEpisodeServers {
     serverId: number;
     serverName: string;
   }[];
+  unavailable?: boolean;
 }
 
 export interface Track {

@@ -12,6 +12,12 @@ type Props = {
   malId?: string | null;
 };
 
+function getFirstEpisodeSlug(slug: string): string {
+  const seasonMatch = slug.match(/-season-(\d+)-/);
+  const season = seasonMatch ? seasonMatch[1] : "1";
+  return `${slug}-${season}x1`;
+}
+
 const WatchButton = ({ provider, malId }: Props) => {
   const pathName = usePathname();
   const slug = pathName.split("/")[2];
@@ -19,7 +25,7 @@ const WatchButton = ({ provider, malId }: Props) => {
   if (provider === "hindi") {
     return (
       <ButtonLink
-        href={`${ROUTES.WATCH}?anime=${slug}&episode=${slug}-s1-ep1&type=hindi`}
+        href={`${ROUTES.WATCH}?anime=${slug}&episode=${getFirstEpisodeSlug(slug)}&type=hindi`}
         className="max-w-fit text-base"
         LeftIcon={Languages}
       >
@@ -29,7 +35,7 @@ const WatchButton = ({ provider, malId }: Props) => {
   }
 
   const animeId = malId || slug;
-  const episodeId = malId ? `${malId}-1` : `${slug}-s1-ep1`;
+  const episodeId = malId ? `${malId}-1` : getFirstEpisodeSlug(slug);
 
   return (
     <ButtonLink

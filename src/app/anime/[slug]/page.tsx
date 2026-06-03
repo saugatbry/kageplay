@@ -26,7 +26,7 @@ import {
   Heart,
   TvMinimalPlay,
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useGetAnimeDetails } from "@/query/get-anime-details";
 import Loading from "@/app/loading";
 import { useAuthStore } from "@/store/auth-store";
@@ -65,9 +65,10 @@ const SelectOptions: ISelectOptions[] = [
 
 const Page = () => {
   const { slug } = useParams();
-  const { data: anime, isLoading } = useGetAnimeDetails(slug as string);
-  const { auth } = useAuthStore();
+  const router = useRouter();
   const provider = useProviderStore((s) => s.provider);
+  const { data: anime, isLoading } = useGetAnimeDetails(slug as string, provider);
+  const { auth } = useAuthStore();
   const { bookmarks, createOrUpdateBookMark } = useBookMarks({
     animeID: slug as string,
     page: 1,
@@ -87,6 +88,15 @@ const Page = () => {
   );
   const animeTitle = anime?.anime?.info?.name;
   const { data: searchMalId } = useGetMalId(animeTitle ?? "");
+
+  const seasonOptions: ISelectOptions[] = (anime?.seasons || []).map((s) => ({
+    value: s.id,
+    label: s.name,
+  }));
+  const currentSeasonId = anime?.seasons?.find((s) => s.isCurrent)?.id || "";
+  const handleSeasonChange = (newSlug: string) => {
+    router.push(`${ROUTES.ANIME_DETAILS}/${newSlug}`);
+  };
 
   const handleSelect = async (value: string) => {
     if (!auth || !anime) return;
@@ -112,12 +122,12 @@ const Page = () => {
   ) : (
     <>
       <Head>
-        <title>{anime.anime.info.name} | TopUpie Anime</title>
+        <title>{anime.anime.info.name} | KagePlay</title>
         <meta name="description" content={anime.anime.info.description?.slice(0, 160)} />
-        <meta property="og:title" content={`${anime.anime.info.name} | TopUpie Anime`} />
+        <meta property="og:title" content={`${anime.anime.info.name} | KagePlay`} />
         <meta property="og:description" content={anime.anime.info.description?.slice(0, 160)} />
         <meta property="og:image" content={anime.anime.info.poster} />
-        <meta name="twitter:title" content={`${anime.anime.info.name} | TopUpie Anime`} />
+        <meta name="twitter:title" content={`${anime.anime.info.name} | KagePlay`} />
         <meta name="twitter:description" content={anime.anime.info.description?.slice(0, 160)} />
         <meta name="twitter:image" content={anime.anime.info.poster} />
       </Head>
@@ -171,7 +181,15 @@ const Page = () => {
             <h1 className="md:text-5xl text-2xl md:font-black font-extrabold z-[9]">
               {anime.anime.info.name}
             </h1>
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-3">
+              {anime.seasons.length > 1 && (
+                <Select
+                  placeholder="Season"
+                  value={currentSeasonId}
+                  options={seasonOptions}
+                  onChange={handleSeasonChange}
+                />
+              )}
               <WatchButton provider={provider} malId={provider === 'subdub' && searchMalId ? String(searchMalId) : null} />
               {auth && (
                 <Select
@@ -279,7 +297,7 @@ const Page = () => {
           </TabsContent>
 
           <TabsContent value="episodes" className="flex flex-col gap-5">
-            <AnimeEpisodes animeId={anime.anime.info.id} />
+            <AnimeEpisodes animeId={anime.anime.info.id} type={provider} />
           </TabsContent>
           {!!anime.anime.info.charactersVoiceActors.length && (
             <TabsContent

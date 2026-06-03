@@ -58,6 +58,82 @@ export type AnilistBannerInfo = {
   coverImage: string | null;
 };
 
+const AIRING_QUERY = `query ($idMal: Int) {
+  Media(idMal: $idMal, type: ANIME) {
+    id
+    episodes
+    status
+    nextAiringEpisode {
+      airingAt
+      timeUntilAiring
+      episode
+    }
+    airingSchedule(perPage: 10) {
+      nodes {
+        airingAt
+        episode
+      }
+    }
+  }
+}`;
+
+export async function getAnilistAiringSchedule(malId: string): Promise<{
+  latestAiredEpisode: number | null;
+  nextAiringEpisode: { episode: number; airingAt: number; timeUntilAiring: number } | null;
+  upcomingSchedule: { episode: number; airingAt: number }[];
+  totalEpisodes: number | null;
+  status: string | null;
+}> {
+  try {
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        query: AIRING_QUERY,
+        variables: { idMal: parseInt(malId, 10) },
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!res.ok) {
+      return { latestAiredEpisode: null, nextAiringEpisode: null, upcomingSchedule: [], totalEpisodes: null, status: null };
+    }
+
+    const json = await res.json();
+    if (json?.errors) {
+      return { latestAiredEpisode: null, nextAiringEpisode: null, upcomingSchedule: [], totalEpisodes: null, status: null };
+    }
+
+    const media = json?.data?.Media;
+    if (!media) {
+      return { latestAiredEpisode: null, nextAiringEpisode: null, upcomingSchedule: [], totalEpisodes: null, status: null };
+    }
+
+    const nextEp = media.nextAiringEpisode;
+    const schedule = media.airingSchedule?.nodes || [];
+    const latestAired = nextEp ? nextEp.episode - 1 : (media.episodes || null);
+
+    return {
+      latestAiredEpisode: latestAired,
+      nextAiringEpisode: nextEp
+        ? {
+            episode: nextEp.episode,
+            airingAt: nextEp.airingAt,
+            timeUntilAiring: nextEp.timeUntilAiring,
+          }
+        : null,
+      upcomingSchedule: schedule.map((n: any) => ({
+        episode: n.episode,
+        airingAt: n.airingAt,
+      })),
+      totalEpisodes: media.episodes ?? null,
+      status: media.status ?? null,
+    };
+  } catch {
+    return { latestAiredEpisode: null, nextAiringEpisode: null, upcomingSchedule: [], totalEpisodes: null, status: null };
+  }
+}
+
 export async function getAnilistBanners(
   malIds: number[],
 ): Promise<Map<number, AnilistBannerInfo>> {

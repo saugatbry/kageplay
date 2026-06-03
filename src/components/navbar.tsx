@@ -7,9 +7,8 @@ import { cn } from "@/lib/utils";
 import Container from "./container";
 import { Separator } from "./ui/separator";
 
-import { nightTokyo } from "@/utils/fonts";
 import { ROUTES } from "@/constants/routes";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 
 import SearchBar from "./search-bar";
 import { MenuIcon, SearchIcon, X } from "lucide-react";
@@ -37,6 +36,18 @@ const NavBar = () => {
   const { y } = useScrollPosition();
   const isHeaderSticky = y > 0;
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [showTip, setShowTip] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const seen = localStorage.getItem("kageplay_tip_seen");
+      if (!seen) {
+        setShowTip(true);
+        localStorage.setItem("kageplay_tip_seen", "1");
+        setTimeout(() => setShowTip(false), 8000);
+      }
+    }
+  }, []);
 
   return (
     <nav
@@ -52,29 +63,38 @@ const NavBar = () => {
         <Link
           href={ROUTES.HOME}
           className="flex items-center gap-1 cursor-pointer shrink-0"
-          aria-label="TopUpie Anime - Home"
+          aria-label="KagePlay - Home"
         >
-          <Image src="https://i.ibb.co/kCDz26G/image-removebg-preview.png" alt="TopUpie Anime logo" width={50} height={50} className="md:w-[70px] md:h-[70px]" />
-          <span
+          <Image src="/logo.png" alt="KagePlay logo" width={115} height={50} className="md:w-[160px] md:h-[70px]" />
+        </Link>
+
+        <div className="relative">
+          {showTip && (
+            <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-max animate-bounce z-50 pointer-events-none">
+              <div className="bg-slate-800 text-blue-300 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg border border-blue-500/30 whitespace-nowrap">
+                Click to switch between Hindi &amp; Sub/Dub
+              </div>
+              <div className="flex justify-center -mt-px">
+                <div className="w-2 h-2 bg-slate-800 border-r border-b border-blue-500/30 rotate-45 -translate-y-1/2"></div>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => setProvider(provider === "subdub" ? "hindi" : "subdub")}
             className={cn([
-              nightTokyo.className,
-              "text-lg md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-pink-600 tracking-widest",
+              "text-sm font-bold px-4 py-2 rounded-full border-2 transition-all duration-300 shrink-0",
+              "hover:scale-105 active:scale-95",
+              provider === "hindi"
+                ? "border-orange-500 text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 hover:shadow-lg hover:shadow-orange-500/20"
+                : "border-blue-500 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 hover:shadow-lg hover:shadow-blue-500/20",
             ])}
           >
-            TopUpie Anime
-          </span>
-        </Link>
-        <button
-          onClick={() => setProvider(provider === "subdub" ? "hindi" : "subdub")}
-          className={cn([
-            "text-xs font-bold px-2 py-1 rounded-full border transition-colors shrink-0",
-            provider === "hindi"
-              ? "border-orange-500 text-orange-400 bg-orange-500/10"
-              : "border-pink-500 text-pink-400 bg-pink-500/10",
-          ])}
-        >
-          {provider === "subdub" ? "Sub/Dub" : "Hindi"}
-        </button>
+            <span className="flex items-center gap-1.5">
+              <span className={cn("inline-block w-2 h-2 rounded-full animate-pulse", provider === "hindi" ? "bg-orange-400" : "bg-blue-400")} />
+              {provider === "subdub" ? "Sub/Dub" : "Hindi"}
+            </span>
+          </button>
+        </div>
 
         <div className="hidden lg:flex items-center gap-10 ml-20">
           {menuItems.map((menu, idx) => (
@@ -136,10 +156,10 @@ const MobileMenuSheet = ({ trigger }: { trigger: ReactNode }) => {
                 setOpen(false);
               }}
               className={cn([
-                "text-sm font-bold px-3 py-1.5 rounded-full border transition-colors w-fit",
+                "text-sm font-bold px-4 py-2 rounded-full border-2 transition-all duration-300 w-fit",
                 provider === "hindi"
                   ? "border-orange-500 text-orange-400 bg-orange-500/10"
-                  : "border-pink-500 text-pink-400 bg-pink-500/10",
+                  : "border-blue-500 text-blue-400 bg-blue-500/10",
               ])}
             >
               {provider === "subdub" ? "Sub/Dub" : "Hindi"}

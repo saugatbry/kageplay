@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-const ACTIVE_BG = "bg-[#e9376b]";
+const ACTIVE_BG = "bg-[#3b82f6]";
 const DEFAULT_BG = "bg-secondary hover:bg-slate-700 active:bg-slate-600";
 
 type Props = {

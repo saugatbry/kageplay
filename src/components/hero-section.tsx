@@ -106,7 +106,7 @@ const HeroSection = (props: IHeroSectionProps) => {
                       <div className="flex items-center gap-3 pt-1">
                         <ButtonLink
                           href={`${ROUTES.ANIME_DETAILS}/${anime.id}`}
-                          className="h-10 px-6 text-sm sm:text-base bg-[#e9376b] text-white hover:bg-[#d62d5d] rounded-lg shadow-lg shadow-[#e9376b]/25"
+                          className="h-10 px-6 text-sm sm:text-base bg-[#3b82f6] text-white hover:bg-[#2563eb] rounded-lg shadow-lg shadow-[#3b82f6]/25"
                         >
                           <Play className="h-4 w-4 mr-1.5 fill-current" />
                           Learn More
@@ -136,7 +136,7 @@ const HeroSection = (props: IHeroSectionProps) => {
             onClick={() => api?.scrollTo(idx)}
             className={`rounded-full transition-all duration-300 ${
               idx === currentIndex
-                ? "w-6 h-1.5 bg-[#e9376b]"
+                ? "w-6 h-1.5 bg-[#3b82f6]"
                 : "w-1.5 h-1.5 bg-white/40 hover:bg-white/60"
             }`}
             aria-label={`Go to slide ${idx + 1}`}

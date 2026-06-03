@@ -12,22 +12,12 @@ const Loading = () => {
         }}
       >
         <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            border: "3px solid rgba(233, 55, 107, 0.15)",
-            borderTopColor: "#e9376b",
-            borderRightColor: "#e9376b",
-            animation: "loader-spin 0.8s linear infinite",
-          }}
-        />
-        <div
           className="absolute rounded-full"
           style={{
-            width: "clamp(54px, 8vw, 80px)",
-            height: "clamp(54px, 8vw, 80px)",
-            background:
-              "radial-gradient(circle, rgba(233, 55, 107, 0.15) 0%, transparent 70%)",
-            animation: "loader-pulse 2s ease-in-out infinite",
+            width: "clamp(80px, 12vw, 115px)",
+            height: "clamp(80px, 12vw, 115px)",
+            background: "radial-gradient(circle, rgba(233, 55, 107, 0.4) 0%, rgba(192, 132, 252, 0.3) 50%, transparent 70%)",
+            animation: "loader-glow 3s ease-in-out infinite",
           }}
         />
         <Image
@@ -42,12 +32,6 @@ const Loading = () => {
             animation: "loader-float 3s ease-in-out infinite",
             position: "relative",
             zIndex: 10,
-          }}
-        />
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            animation: "loader-glow 2s ease-in-out infinite",
           }}
         />
       </div>

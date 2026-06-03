@@ -27,11 +27,12 @@ function AnimeHeatmap() {
 
   // --- Data Fetching and Aggregation ---
   const fetchAndAggregateWatchHistory = async () => {
-    if (!auth?.id) return; // Need authenticated user ID
+    if (!auth?.id || !pb) return; // Need authenticated user ID + PocketBase
+    const instance = pb;
 
     try {
       // 1. Get all bookmark records for the user
-      const bookmarkRecords = await pb
+      const bookmarkRecords = await instance
         .collection<BookmarkData>("bookmarks")
         .getFullList({
           filter: `user = "${auth.id}"`,
@@ -74,7 +75,7 @@ function AnimeHeatmap() {
 
       try {
         // 4. Fetch all corresponding 'watched' records
-        const watchedRecords = await pb
+        const watchedRecords = await instance
           .collection<WatchHistory>("watched")
           .getFullList({
             filter: watchedFilter,

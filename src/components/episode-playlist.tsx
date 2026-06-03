@@ -60,8 +60,9 @@ const EpisodePlaylist = ({
     React.useState<Episode[]>(filtered);
 
   useEffect(() => {
+    const episodeExists = episodeId && episodes?.episodes?.some(ep => ep.episodeId === episodeId);
     if (
-      (!episodeId || !episodeId.includes("ep")) &&
+      !episodeExists &&
       !!episodes &&
       !!episodes.episodes.length
     ) {

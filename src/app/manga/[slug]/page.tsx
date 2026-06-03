@@ -45,7 +45,7 @@ const MangaDetailPage = () => {
             href={`/manga/read?url=${encodeURIComponent(ch.url)}&title=${encodeURIComponent(ch.title || `Chapter ${ch.number}`)}`}
             className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 rounded-lg p-3 transition-colors"
           >
-            <BookOpen className="h-5 w-5 text-pink-500 shrink-0" />
+            <BookOpen className="h-5 w-5 text-blue-500 shrink-0" />
             <span className="text-sm md:text-base">
               {ch.title || `Chapter ${ch.number}`}
             </span>

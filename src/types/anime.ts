@@ -9,6 +9,8 @@ export interface IAnimeData {
   mostFavoriteAnimes: IAnime[];
   latestCompletedAnimes: LatestCompletedAnime[];
   genres: string[];
+  movies?: IAnime[];
+  recentlyAdded?: IAnime[];
 }
 
 export interface LatestCompletedAnime extends IAnime {
@@ -91,4 +93,5 @@ export interface SearchAnimeParams {
   language?: string;
   sort?: string;
   genres?: string; // Comma-separated: "isekai,shounen"
+  provider?: string;
 }

@@ -23,11 +23,15 @@ function Avatar({
   collectionID,
   onClick,
 }: Props) {
-  const src = `${env("NEXT_PUBLIC_POCKETBASE_URL")}/api/files/${collectionID}/${id}/${url}`;
+  const pbUrl = env("NEXT_PUBLIC_POCKETBASE_URL");
+  const src =
+    pbUrl && collectionID && id && url
+      ? `${pbUrl}/api/files/${collectionID}/${id}/${url}`
+      : undefined;
 
   return (
     <AvatarCN className={className} onClick={onClick}>
-      <AvatarImage src={src} alt={username} />
+      {src && <AvatarImage src={src} alt={username} />}
       <AvatarFallback>
         {username?.charAt(0).toUpperCase()}
         {username?.charAt(1).toLowerCase()}

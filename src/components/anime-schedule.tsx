@@ -91,7 +91,7 @@ function AnimeSchedule() {
                       </div>
                       <Link href={`${ROUTES.ANIME_DETAILS}/${anime.id}`}>
                         <Button
-                          className="w-[8rem] bg-[#e9376b] text-white hover:bg-[#e9376b]"
+                          className="w-[8rem] bg-[#3b82f6] text-white hover:bg-[#3b82f6]"
                           size="sm"
                         >
                           Episode {anime.episode}

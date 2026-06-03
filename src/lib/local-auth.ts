@@ -1,4 +1,4 @@
-const USERS_KEY = "topupie_users";
+const USERS_KEY = "kageplay_users";
 
 interface StoredUser {
   id: string;

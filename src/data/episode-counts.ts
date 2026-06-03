@@ -4,6 +4,7 @@ const episodeCounts: Record<string, number> = {
   "6": 26,
   "15": 145,
   "19": 74,
+  "21": 1164,
   "30": 26,
   "32": 1,
   "33": 25,

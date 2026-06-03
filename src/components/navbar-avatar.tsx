@@ -44,7 +44,7 @@ function NavbarAvatar({ auth }: Props) {
           <div
             className="flex flex-row space-x-2 items-center cursor-pointer "
             onClick={() => {
-              pb.authStore.clear();
+              pb?.authStore.clear();
               auth.clearAuth();
             }}
           >

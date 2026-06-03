@@ -42,6 +42,13 @@ function normalizeKey(key: string): string {
   return "cache:" + crypto.createHash("sha256").update(key).digest("hex");
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms)),
+  ]);
+}
+
 export async function getCached(key: string, maxAge: number): Promise<any | null> {
   const nkey = normalizeKey(key);
 
@@ -51,7 +58,7 @@ export async function getCached(key: string, maxAge: number): Promise<any | null
   const redis = await getRedis();
   if (redis) {
     try {
-      const raw = await redis.get(nkey);
+      const raw = await withTimeout(redis.get(nkey), 5000);
       if (raw) {
         const entry = typeof raw === "string" ? JSON.parse(raw) : raw;
         if (Date.now() - entry.ts < maxAge * 1000) {
@@ -83,7 +90,7 @@ export async function setCache(key: string, data: any) {
 
   const redis = await getRedis();
   if (redis) {
-    try { await redis.set(nkey, JSON.stringify(entry)); } catch {}
+    try { await withTimeout(redis.set(nkey, JSON.stringify(entry)), 5000); } catch {}
   }
 
   try {

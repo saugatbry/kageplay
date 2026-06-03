@@ -147,7 +147,7 @@ function AnilistImport() {
                   loading={isLoading}
                   disabled={isLoading}
                   size="sm"
-                  className="bg-[#e9376b]  hover:bg-[#e9376b] text-white"
+                  className="bg-[#3b82f6]  hover:bg-[#3b82f6] text-white"
                   type="submit"
                   onClick={onSubmitStepOne}
                 >
@@ -183,7 +183,7 @@ function AnilistImport() {
                   loading={isLoading}
                   disabled={isLoading}
                   size="sm"
-                  className="bg-[#e9376b]  hover:bg-[#e9376b] text-white"
+                  className="bg-[#3b82f6]  hover:bg-[#3b82f6] text-white"
                   type="submit"
                   onClick={onSubmitStepTwo}
                 >

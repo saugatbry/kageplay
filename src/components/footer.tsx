@@ -7,9 +7,9 @@ const Footer = () => {
   return (
     <footer className="w-full bg-base-300 shadow-xl p-5 flex flex-col items-center space-y-5">
       <Image
-        src="https://i.ibb.co/kCDz26G/image-removebg-preview.png"
-        alt="TopUpie Anime"
-        width="100"
+        src="/logo.png"
+        alt="KagePlay"
+        width="230"
         height="100"
         loading="lazy"
         suppressHydrationWarning
@@ -42,21 +42,21 @@ const Footer = () => {
         </Link>
       </div>
       <Link
-        href="mailto:topupieanime@gmail.com"
-        className="text-sm text-gray-400 hover:text-pink-400 transition-colors"
+        href="mailto:kageplayanime@gmail.com"
+        className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
       >
-        Support: topupieanime@gmail.com
+        Support: kageplayanime@gmail.com
       </Link>
       <p className="text-sm text-gray-300">
-        TopUpie Anime does not store any files on the server, we only link to
+        KagePlay does not store any files on the server, we only link to
         the media which is hosted on 3rd party services.
       </p>
       <p className="text-sm text-gray-300 flex items-center gap-2">
-        &copy; TopUpie Anime &mdash; developed by{" "}
+        &copy; KagePlay &mdash; developed by{" "}
         <Link
           href="https://instagram.com/psyflowz"
           target="_blank"
-          className="flex items-center gap-1 text-pink-400 hover:text-pink-300"
+          className="flex items-center gap-1 text-blue-400 hover:text-blue-300"
         >
           <InstagramLogoIcon width="16" height="16" />
           psyflowz

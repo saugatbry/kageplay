@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import Tooltip from "./common/tooltip";
+import { useProviderStore } from "@/store/provider-store";
 
 const SearchBar = ({
   className,
@@ -24,7 +25,8 @@ const SearchBar = ({
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
-  const { data: searchResults, isLoading } = useSearchAnime(debouncedValue);
+  const { provider } = useProviderStore();
+  const { data: searchResults, isLoading } = useSearchAnime(debouncedValue, provider);
 
   const handleBlur = () => {
     setTimeout(() => {
@@ -48,7 +50,7 @@ const SearchBar = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchValue.trim()) {
       // Redirect to the search results page
-      router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}`);
+      router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}&provider=${provider}`);
       setIsFocused(false); // Hide the dropdown results
       if (onAnimeClick) {
         onAnimeClick();
@@ -73,7 +75,7 @@ const SearchBar = ({
         variant="secondary"
         className="absolute  text-white right-2 top-1/2 -translate-y-1/2 h-2/3"
         onClick={() => {
-          router.push(ROUTES.SEARCH + '?q=""');
+          router.push(`${ROUTES.SEARCH}?q=""&provider=${provider}`);
         }}
       >
         <Tooltip side="bottom" content="Filter">
@@ -125,7 +127,7 @@ const SearchBar = ({
                             ? "text-orange-400 bg-orange-500/10 border border-orange-500"
                             : anime.provider === "both"
                               ? "text-green-400 bg-green-500/10 border border-green-500"
-                              : "text-pink-400 bg-pink-500/10 border border-pink-500",
+                              : "text-blue-400 bg-blue-500/10 border border-blue-500",
                         ])}>
                           {anime.provider === "hindi" ? "Hindi" : anime.provider === "both" ? "Sub/Dub+Hindi" : "Sub/Dub"}
                         </span>
@@ -143,9 +145,9 @@ const SearchBar = ({
             ))}
             <Link
               className="w-full"
-              href={`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}`}
+              href={`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}&provider=${provider}`}
             >
-              <Button className="w-full bg-[#e9376b] text-white">
+              <Button className="w-full bg-[#3b82f6] text-white">
                 Show More
               </Button>
             </Link>
@@ -196,7 +198,7 @@ const SearchBar = ({
                             ? "text-orange-400 bg-orange-500/10 border border-orange-500"
                             : anime.provider === "both"
                               ? "text-green-400 bg-green-500/10 border border-green-500"
-                              : "text-pink-400 bg-pink-500/10 border border-pink-500",
+                              : "text-blue-400 bg-blue-500/10 border border-blue-500",
                         ])}>
                           {anime.provider === "hindi" ? "Hindi" : anime.provider === "both" ? "S/D+Hindi" : "S/D"}
                         </span>

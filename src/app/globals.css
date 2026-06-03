@@ -28,8 +28,8 @@
 }
 
 @keyframes loader-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(233, 55, 107, 0.3); }
-  50% { box-shadow: 0 0 24px rgba(233, 55, 107, 0.6); }
+  0%, 100% { box-shadow: 0 0 30px 10px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 60px 20px rgba(192, 132, 252, 0.3); }
 }
 
 @keyframes loader-float {
@@ -167,4 +167,13 @@ body {
 .react-calendar-heatmap rect:hover {
   stroke: #555;
   stroke-width: 1px;
+}
+
+iframe {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+iframe::-webkit-scrollbar {
+  display: none;
 }

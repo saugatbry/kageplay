@@ -59,10 +59,15 @@ function useBookMarks({
 
   useEffect(() => {
     if (!populate) return;
+    if (!pb) {
+      setIsLoading(false);
+      return;
+    }
+    const instance = pb;
     const getBookmarks = async () => {
       try {
         setIsLoading(true);
-        const res = await pb
+        const res = await instance
           .collection<Bookmark>("bookmarks")
           .getList(page, per_page, {
             filter: filters,
@@ -94,11 +99,12 @@ function useBookMarks({
     status: string,
     showToast: boolean = true,
   ): Promise<string | null> => {
-    if (!auth) {
+    if (!auth || !pb) {
       return null;
     }
+    const instance = pb;
     try {
-      const res = await pb.collection<Bookmark>("bookmarks").getList(1, 1, {
+      const res = await instance.collection<Bookmark>("bookmarks").getList(1, 1, {
         filter: `animeId='${animeID}'`,
       });
 
@@ -112,7 +118,7 @@ function useBookMarks({
           return res.items[0].id;
         }
 
-        const updated = await pb
+        const updated = await instance
           .collection("bookmarks")
           .update(res.items[0].id, {
             status: status,
@@ -126,7 +132,7 @@ function useBookMarks({
 
         return updated.id;
       } else {
-        const created = await pb.collection<Bookmark>("bookmarks").create({
+        const created = await instance.collection<Bookmark>("bookmarks").create({
           user: auth.id,
           animeId: animeID,
           animeTitle: animeTitle,
@@ -158,26 +164,27 @@ function useBookMarks({
       duration: number;
     },
   ): Promise<string | null> => {
-    if (!pb.authStore.isValid || !bookmarkId) return watchedRecordId;
+    if (!pb || !pb.authStore.isValid || !bookmarkId) return watchedRecordId;
+    const instance = pb;
 
     const dataToSave = {
       episodeId: episodeData.episodeId,
       episodeNumber: episodeData.episodeNumber,
-      current: Math.round(episodeData.current), // Store as integer seconds
-      timestamp: Math.round(episodeData.duration), // Use 'timestamp' field for duration
+      current: Math.round(episodeData.current),
+      timestamp: Math.round(episodeData.duration),
     };
 
     try {
       if (watchedRecordId) {
-        await pb.collection("watched").update(watchedRecordId, dataToSave);
+        await instance.collection("watched").update(watchedRecordId, dataToSave);
         return watchedRecordId;
       } else {
-        const newWatchedRecord = await pb
+        const newWatchedRecord = await instance
           .collection("watched")
           .create(dataToSave);
 
         try {
-          await pb.collection("bookmarks").update(bookmarkId, {
+          await instance.collection("bookmarks").update(bookmarkId, {
             "watchHistory+": newWatchedRecord.id,
           });
         } catch (error) {

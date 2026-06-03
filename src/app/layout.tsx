@@ -18,9 +18,9 @@ const geistSans = localFont({
   weight: "100 900",
 });
 
-const APP_NAME = "TopUpie Anime";
-const APP_DEFAULT_TITLE = "TopUpie Anime - Watch Free Anime Online in HD";
-const APP_DESCRIPTION = "TopUpie - Watch Free Anime Online in HD Quality. Stream anime free in HD with sub & dub options. Browse thousands of titles by genre, year, studio, and more. No ads, no bullshit.";
+const APP_NAME = "KagePlay";
+const APP_DEFAULT_TITLE = "KagePlay - Watch Free Anime Online in HD";
+const APP_DESCRIPTION = "KagePlay - Watch Free Anime Online in HD Quality. Stream anime free in HD with sub & dub options. Browse thousands of titles by genre, year, studio, and more. No ads, no bullshit.";
 const APP_KEYWORDS = ["free anime website", "watch anime online free", "anime streaming", "anime online hd", "sub and dub anime", "free anime no ads", "best free anime website", "anime website online", "anime streaming free hd", "watch anime free"];
 
 export const viewport: Viewport = {
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,
-    template: "%s | TopUpie Anime",
+    template: "%s | KagePlay",
   },
   description: APP_DESCRIPTION,
   keywords: APP_KEYWORDS,
@@ -52,14 +52,14 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
     title: APP_DEFAULT_TITLE,
     description: APP_DESCRIPTION,
-    url: "https://topupieanime.vercel.app",
+    url: "https://kageplay.vercel.app",
     locale: "en_US",
     images: [
       {
-        url: "https://i.ibb.co/kCDz26G/image-removebg-preview.png",
+        url: "/logo.png",
         width: 192,
         height: 192,
-        alt: "TopUpie Anime",
+        alt: "KagePlay",
       },
     ],
   },
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: APP_DEFAULT_TITLE,
     description: APP_DESCRIPTION,
-    images: ["https://i.ibb.co/kCDz26G/image-removebg-preview.png"],
+    images: ["/logo.png"],
   },
   robots: {
     index: true,
@@ -96,8 +96,11 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://api.jikan.moe" />
-        <link rel="dns-prefetch" href="https://cdn.myanimelist.net" />
-        <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="preconnect" href="https://cdn.myanimelist.net" />
+        <link rel="preconnect" href="https://image.tmdb.org" />
+        <link rel="dns-prefetch" href="https://piratexplay.cc" />
+        <link rel="dns-prefetch" href="https://api-js.piratexplay.cc" />
+        <link rel="dns-prefetch" href="https://megaplay.buzz" />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-C5ES6E3GFP"
           strategy="afterInteractive"
@@ -111,7 +114,7 @@ export default function RootLayout({
           gtag('config', 'G-C5ES6E3GFP');`}
         </Script>
         <PublicEnvScript />
-        <link rel="icon" href="https://i.ibb.co/kCDz26G/image-removebg-preview.png" type="image/png" sizes="192x192" />
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="192x192" />
       </head>
       <body
         className={`${geistSans.className} antialiased max-w-[100vw] overflow-x-hidden`}

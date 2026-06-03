@@ -1,6 +1,7 @@
 import { aniverse } from "./aniverse";
 import { getJikanInfo } from "./jikan";
 import { getPreSeededEpisodeCount } from "@/data/episode-counts";
+import { getAnilistEpisodeCount, getAnilistAiringSchedule } from "./anilist";
 import { getCached, setCache } from "./cache";
 
 const JIKAN_API = "https://api.jikan.moe/v4";
@@ -202,30 +203,53 @@ export const hianime = {
       const fromCache = await getCached(EP_CACHE_KEY, 86400);
       if (fromCache) return fromCache;
 
+      let total = 0;
+
       const preSeeded = getPreSeededEpisodeCount(id);
       if (preSeeded !== null) {
-        const episodes: any[] = [];
-        for (let i = 1; i <= preSeeded; i++) {
-          episodes.push({ number: i, episodeId: `${id}-${i}`, title: `Episode ${i}`, isFiller: false });
+        total = preSeeded;
+      } else {
+        const anilist = await getAnilistEpisodeCount(id);
+        if (anilist.count !== null && anilist.count > 0) {
+          total = anilist.count;
+        } else {
+          try {
+            const a = await getJikanInfo(id);
+            total = a?.episodes || 0;
+          } catch {
+            total = 0;
+          }
         }
-        const result = { totalEpisodes: preSeeded, episodes };
-        await setCache(EP_CACHE_KEY, result);
-        return result;
       }
 
-      try {
-        const a = await getJikanInfo(id);
-        const total = a?.episodes || 0;
-        const episodes: any[] = [];
-        for (let i = 1; i <= total; i++) {
-          episodes.push({ number: i, episodeId: `${id}-${i}`, title: `Episode ${i}`, isFiller: false });
-        }
-        const result = { totalEpisodes: total, episodes };
-        await setCache(EP_CACHE_KEY, result);
-        return result;
-      } catch {
-        return { totalEpisodes: 0, episodes: [] };
+      if (total === 0) return { totalEpisodes: 0, episodes: [] };
+
+      const airing = await getAnilistAiringSchedule(id);
+      const latestAired = airing.latestAiredEpisode;
+      const nextAiring = airing.nextAiringEpisode;
+
+      if (latestAired !== null) {
+        total = Math.max(total, latestAired);
       }
+      if (nextAiring) {
+        total = Math.max(total, nextAiring.episode);
+      }
+
+      const episodes: any[] = [];
+      for (let i = 1; i <= total; i++) {
+        const ep: any = { number: i, episodeId: `${id}-${i}`, title: `Episode ${i}`, isFiller: false, season: 1 };
+        if (nextAiring && i === nextAiring.episode) {
+          ep.airingAt = nextAiring.airingAt;
+        } else {
+          const sched = airing.upcomingSchedule.find((s) => s.episode === i);
+          if (sched) ep.airingAt = sched.airingAt;
+        }
+        episodes.push(ep);
+      }
+
+      const result = { totalEpisodes: total, episodes, ...(airing.latestAiredEpisode !== null ? { latestAiredEpisode: airing.latestAiredEpisode } : {}) };
+      await setCache(EP_CACHE_KEY, result);
+      return result;
     }
     return aniverse.getEpisodes(id);
   },

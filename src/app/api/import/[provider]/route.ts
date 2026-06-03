@@ -1,4 +1,4 @@
-import { hianime } from "@/lib/hianime";
+import { aniverse } from "@/lib/aniverse";
 import { AnilistMediaList } from "@/types/anilist-animes";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -48,7 +48,7 @@ export async function POST(
       if (!title || !title.english) {
         continue; // Skip if title is not available
       }
-      const suggestions = await hianime.searchSuggestions(title.english);
+      const suggestions = await aniverse.searchSuggestions(title.english);
       if (suggestions.length > 0) {
         mappedAnimes.push({
           id: suggestions[0].id,
