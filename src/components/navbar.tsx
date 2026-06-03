@@ -36,18 +36,7 @@ const NavBar = () => {
   const { y } = useScrollPosition();
   const isHeaderSticky = y > 0;
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const [showTip, setShowTip] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const seen = localStorage.getItem("kageplay_tip_seen");
-      if (!seen) {
-        setShowTip(true);
-        localStorage.setItem("kageplay_tip_seen", "1");
-        setTimeout(() => setShowTip(false), 8000);
-      }
-    }
-  }, []);
+  const [showTip, setShowTip] = useState(true);
 
   return (
     <nav
@@ -70,9 +59,16 @@ const NavBar = () => {
 
         <div className="relative">
           {showTip && (
-            <div className="absolute -top-14 left-1/2 -translate-x-1/2 w-max animate-bounce z-50 pointer-events-none">
-              <div className="bg-slate-800 text-blue-300 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg border border-blue-500/30 whitespace-nowrap">
+            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-max z-50">
+              <div className="bg-slate-800 text-blue-300 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg border border-blue-500/30 whitespace-nowrap flex items-center gap-2">
                 Click to switch between Hindi &amp; Sub/Dub
+                <button
+                  onClick={() => setShowTip(false)}
+                  className="text-gray-400 hover:text-white hover:bg-slate-700 rounded-full w-4 h-4 flex items-center justify-center text-xs leading-none"
+                  aria-label="Dismiss tip"
+                >
+                  x
+                </button>
               </div>
               <div className="flex justify-center -mt-px">
                 <div className="w-2 h-2 bg-slate-800 border-r border-b border-blue-500/30 rotate-45 -translate-y-1/2"></div>
