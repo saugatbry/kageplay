@@ -335,7 +335,7 @@ export const hianime = {
     return aniverse.searchSuggestions(query);
   },
 
-  async getEstimatedSchedule(_date?: string) {
-    return aniverse.getEstimatedSchedule();
+  async getEstimatedSchedule(date?: string) {
+    return aniverse.getEstimatedSchedule(date);
   },
 };

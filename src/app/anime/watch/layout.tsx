@@ -23,6 +23,7 @@ import React, { ReactNode, useEffect, useMemo, useState } from "react";
 import AnimeCarousel from "@/components/anime-carousel";
 import { IAnime } from "@/types/anime";
 import useBookMarks from "@/hooks/use-get-bookmark";
+import Comments from "@/components/comments";
 import { toast } from "sonner";
 import { useGetAllEpisodes } from "@/query/get-all-episodes";
 
@@ -219,6 +220,7 @@ const Layout = (props: Props) => {
               );
             })}
           </div>
+          <Comments />
         </Container>
       )
     );
@@ -281,6 +283,7 @@ const Layout = (props: Props) => {
             anime={anime?.recommendedAnimes as IAnime[]}
           />
         )}
+        <Comments />
       </Container>
     )
   );

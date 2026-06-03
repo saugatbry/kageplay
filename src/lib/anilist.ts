@@ -134,6 +134,51 @@ export async function getAnilistAiringSchedule(malId: string): Promise<{
   }
 }
 
+export async function getAnilistWeeklySchedule(weekStart: number, weekEnd: number): Promise<{
+  id: string;
+  name: string;
+  jname: string;
+  airingTimestamp: number;
+  episode: number;
+}[]> {
+  try {
+    const query = `query ($weekStart: Int, $weekEnd: Int) {
+      Page(page: 1, perPage: 50) {
+        airingSchedules(airingAt_greater: $weekStart, airingAt_lesser: $weekEnd, sort: TIME) {
+          id
+          airingAt
+          episode
+          media {
+            id
+            idMal
+            title { romaji english native }
+            coverImage { large }
+          }
+        }
+      }
+    }`;
+    const res = await fetch(ANILIST_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query, variables: { weekStart, weekEnd } }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (json?.errors) return [];
+    const nodes = json?.data?.Page?.airingSchedules || [];
+    return nodes.map((n: any) => ({
+      id: String(n.media?.idMal || n.media?.id || n.id),
+      name: n.media?.title?.english || n.media?.title?.romaji || "Unknown",
+      jname: n.media?.title?.native || n.media?.title?.romaji || "",
+      airingTimestamp: n.airingAt,
+      episode: n.episode,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getAnilistBanners(
   malIds: number[],
 ): Promise<Map<number, AnilistBannerInfo>> {

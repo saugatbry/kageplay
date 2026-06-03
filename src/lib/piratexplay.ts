@@ -1,4 +1,5 @@
 import { getCached, setCache } from "./cache";
+import { getAnilistWeeklySchedule } from "./anilist";
 
 const PUBLIC_API = "https://piratexplay.cc/api";
 const INTERNAL_API = "https://api-js.piratexplay.cc";
@@ -533,8 +534,31 @@ export const piratexplay = {
     }
   },
 
-  async getEstimatedSchedule() {
-    return [];
+  async getEstimatedSchedule(date?: string) {
+    try {
+      if (!date) date = new Date().toISOString().split("T")[0];
+      const dayStart = new Date(date);
+      dayStart.setHours(0, 0, 0, 0);
+      const weekStart = Math.floor(dayStart.getTime() / 1000);
+      const weekEnd = weekStart + 7 * 86400;
+      const key = `schedule-${weekStart}`;
+      const cached = await getCached(key, 3600);
+      if (cached) return cached;
+      const results = await getAnilistWeeklySchedule(weekStart, weekEnd);
+      const mapped = results.map((r) => ({
+        id: r.id,
+        name: r.name,
+        jname: r.jname,
+        time: new Date(r.airingTimestamp * 1000).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
+        airingTimestamp: r.airingTimestamp,
+        secondsUntilAiring: Math.max(0, r.airingTimestamp - Math.floor(Date.now() / 1000)),
+        episode: r.episode,
+      }));
+      await setCache(key, mapped);
+      return mapped;
+    } catch {
+      return [];
+    }
   },
 };
 
