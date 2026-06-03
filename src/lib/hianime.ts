@@ -74,9 +74,12 @@ interface JikanAnime {
   rank?: number;
   genres?: Array<{ mal_id: number; type: string; name: string }>;
   studios?: Array<{ mal_id: number; type: string; name: string }>;
+  producers?: Array<{ mal_id: number; name: string }>;
   status?: string;
   year?: number;
   season?: string;
+  duration?: string;
+  aired?: { string?: string };
 }
 
 interface CommonAnime {
@@ -104,6 +107,46 @@ function mapJikanAnimeToCommon(anime: JikanAnime, rank?: number): CommonAnime {
     status: anime.status || "Unknown",
     year: anime.year,
     season: anime.season,
+  };
+}
+
+function buildInfoResponse(a: JikanAnime) {
+  return {
+    anime: {
+      info: {
+        id: String(a.mal_id),
+        anilistId: 0,
+        malId: a.mal_id,
+        name: a.title_english || a.title || "Unknown",
+        poster: a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || "",
+        description: a.synopsis || "",
+        stats: {
+          rating: String(a.score || ""),
+          quality: "HD",
+          episodes: { sub: a.episodes || 0, dub: 0 },
+          type: a.type || "TV",
+          duration: a.duration || "",
+        },
+        promotionalVideos: [],
+        charactersVoiceActors: [],
+      },
+      moreInfo: {
+        japanese: a.title_japanese || "",
+        synonyms: a.title || "",
+        aired: a.aired?.string || "",
+        premiered: `${a.season || ""} ${a.year || ""}`.trim(),
+        duration: a.duration || "",
+        status: a.status || "",
+        malscore: String(a.score || ""),
+        genres: (a.genres || []).map((g: any) => g.name),
+        studios: (a.studios || []).map((s: any) => s.name).join(", "),
+        producers: (a.producers || []).map((p: any) => p.name),
+      },
+    },
+    seasons: [],
+    mostPopularAnimes: [],
+    relatedAnimes: [],
+    recommendedAnimes: [],
   };
 }
 
@@ -152,49 +195,47 @@ export const hianime = {
     if (isMAL(id)) {
       const a = await getJikanInfo(id);
       if (!a) throw new Error("Anime not found");
-      return {
-        anime: {
-          info: {
-            id: String(a.mal_id),
-            anilistId: 0,
-            malId: a.mal_id,
-            name: a.title_english || a.title || "Unknown",
-            poster: a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || "",
-            description: a.synopsis || "",
-            stats: {
-              rating: String(a.score || ""),
-              quality: "HD",
-              episodes: { sub: a.episodes || 0, dub: 0 },
-              type: a.type || "TV",
-              duration: a.duration || "",
-            },
-            promotionalVideos: [],
-            charactersVoiceActors: [],
-          },
-          moreInfo: {
-            japanese: a.title_japanese || "",
-            synonyms: a.title || "",
-            aired: a.aired?.string || "",
-            premiered: `${a.season || ""} ${a.year || ""}`.trim(),
-            duration: a.duration || "",
-            status: a.status || "",
-            malscore: String(a.score || ""),
-            genres: (a.genres || []).map((g: any) => g.name),
-            studios: (a.studios || []).map((s: any) => s.name).join(", "),
-            producers: (a.producers || []).map((p: any) => p.name),
-          },
-        },
-        seasons: [],
-        mostPopularAnimes: [],
-        relatedAnimes: [],
-        recommendedAnimes: [],
-      };
+      return buildInfoResponse(a);
     }
-    return aniverse.getInfo(id);
+    try {
+      const data = await aniverse.getInfo(id);
+      if (data?.anime?.info?.name) return data;
+    } catch {
+      console.log(`[hianime] PirateXPlay getInfo failed for ${id}, trying Jikan fallback`);
+    }
+    const titleFromSlug = id.replace(/-season-\d+-\d+$/, "").replace(/-/g, " ");
+    try {
+      const searchRes = await rateLimitedFetch(`${JIKAN_API}/anime?q=${encodeURIComponent(titleFromSlug)}&limit=5&page=1`);
+      const found = searchRes?.data?.[0];
+      if (found) return buildInfoResponse(found);
+    } catch {
+      console.log(`[hianime] Jikan fallback search failed for "${titleFromSlug}"`);
+    }
+    throw new Error("Anime not found");
   },
 
   async search(query: string, page: number = 1, _filters?: Record<string, any>) {
-    return aniverse.search(query, page);
+    try {
+      const result = await aniverse.search(query, page);
+      if (result?.animes?.length) return result;
+    } catch {
+      console.log(`[hianime] PirateXPlay search failed, using Jikan`);
+    }
+    try {
+      const res = await rateLimitedFetch(`${JIKAN_API}/anime?q=${encodeURIComponent(query)}&page=${page}&limit=20`);
+      const items = (res?.data || []).map((item: any) => ({
+        id: String(item.mal_id),
+        name: item.title_english || item.title || "Unknown",
+        jname: item.title_japanese || "",
+        poster: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || "",
+        episodes: { sub: item.episodes || null, dub: null },
+        type: item.type || "TV",
+        rank: item.rank || null,
+      }));
+      return { animes: items, totalPages: res?.pagination?.last_visible_page || 1, currentPage: page, hasNextPage: res?.pagination?.has_next_page || false, hasPrevPage: page > 1 };
+    } catch {
+      return { animes: [], totalPages: 1, currentPage: 1, hasNextPage: false, hasPrevPage: false };
+    }
   },
 
   async getEpisodes(id: string) {
