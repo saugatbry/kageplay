@@ -9,7 +9,12 @@ async function fetchJson(url: string): Promise<any> {
   const cached = await getCached(url, CACHE_TIME);
   if (cached) return cached;
   const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json, text/plain, */*",
+      "Referer": "https://piratexplay.cc",
+      "Origin": "https://piratexplay.cc",
+    },
     signal: AbortSignal.timeout(15000),
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
@@ -260,7 +265,7 @@ export const piratexplay = {
 
   async search(query: string, _page: number = 1) {
     try {
-      const data = await fetchJson(`${PUBLIC_API}/search.php/?keyword=${encodeURIComponent(query)}&page=1`);
+      const data = await fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=1`);
       const totalPages = data?.total_pages || 1;
       let items = data?.data || [];
 
@@ -268,7 +273,7 @@ export const piratexplay = {
         const remainingPages = [];
         for (let p = 2; p <= totalPages; p++) {
           remainingPages.push(
-            fetchJson(`${PUBLIC_API}/search.php/?keyword=${encodeURIComponent(query)}&page=${p}`)
+            fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=${p}`)
               .then((r) => r?.data || [])
               .catch(() => [])
           );
@@ -510,7 +515,7 @@ export const piratexplay = {
 
   async searchSuggestions(query: string) {
     try {
-      const data = await fetchJson(`${PUBLIC_API}/search.php/?keyword=${encodeURIComponent(query)}&page=1`);
+      const data = await fetchJson(`${PUBLIC_API}/search.php?keyword=${encodeURIComponent(query)}&page=1`);
       const items = data?.data || [];
       const suggestions = items.slice(0, 8).map((item: any) => ({
         id: item.tmdb?.url || "",
