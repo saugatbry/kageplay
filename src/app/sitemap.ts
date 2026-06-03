@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/search`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
   ];
 
-  let animeSlugs: string[] = [];
+  const animeSlugs: string[] = [];
   try {
     const res = await fetch(`${baseUrl}/api/home?provider=subdub`, {
       signal: AbortSignal.timeout(5000),
