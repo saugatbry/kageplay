@@ -1,5 +1,6 @@
 import { hianime } from "@/lib/hianime";
 import { aniverse } from "@/lib/aniverse";
+import { cachedJson } from "@/lib/api-cache";
 
 export async function GET(request: Request) {
   try {
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
 
     if (provider === "hindi") {
       const data = await aniverse.getHomePage();
-      return Response.json({ data });
+      return cachedJson({ data });
     }
 
     let data = await hianime.getHomePage().catch(() => null);
@@ -16,9 +17,9 @@ export async function GET(request: Request) {
       console.log("[home] Jikan returned empty, falling back to Hindi provider");
       data = await aniverse.getHomePage();
     }
-    return Response.json({ data });
+    return cachedJson({ data });
   } catch (err) {
     console.log(err);
-    return Response.json({ error: "something went wrong" }, { status: 500 });
+    return cachedJson({ error: "something went wrong" }, { status: 500, ttl: 0 });
   }
 }

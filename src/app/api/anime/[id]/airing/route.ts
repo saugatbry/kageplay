@@ -1,3 +1,5 @@
+import { cachedJson } from "@/lib/api-cache";
+
 const ANILIST_API = "https://graphql.anilist.co";
 
 export async function GET(
@@ -8,7 +10,7 @@ export async function GET(
     const { id } = await params;
     const malId = parseInt(id, 10);
     if (isNaN(malId)) {
-      return Response.json({ error: "invalid mal id" }, { status: 400 });
+      return cachedJson({ error: "invalid mal id" }, { status: 400, ttl: 0 });
     }
 
     const query = `query ($idMal: Int) {
@@ -38,24 +40,24 @@ export async function GET(
     });
 
     if (!res.ok) {
-      return Response.json({ error: "anilist error" }, { status: 502 });
+      return cachedJson({ error: "anilist error" }, { status: 502, ttl: 0 });
     }
 
     const json = await res.json();
     if (json?.errors) {
-      return Response.json({ error: json.errors[0]?.message }, { status: 502 });
+      return cachedJson({ error: json.errors[0]?.message }, { status: 502, ttl: 0 });
     }
 
     const media = json?.data?.Media;
     if (!media) {
-      return Response.json({ error: "not found" }, { status: 404 });
+      return cachedJson({ error: "not found" }, { status: 404, ttl: 0 });
     }
 
     const nextEp = media.nextAiringEpisode;
     const schedule = media.airingSchedule?.nodes || [];
     const latestAired = nextEp ? nextEp.episode - 1 : (media.episodes || 0);
 
-    return Response.json({
+    return cachedJson({
       anilistId: media.id,
       totalEpisodes: media.episodes,
       status: media.status,
@@ -71,9 +73,9 @@ export async function GET(
         episode: n.episode,
         airingAt: n.airingAt,
       })),
-    });
+    }, { ttl: 300 });
   } catch (err) {
     console.error(err);
-    return Response.json({ error: "something went wrong" }, { status: 500 });
+    return cachedJson({ error: "something went wrong" }, { status: 500, ttl: 0 });
   }
 }

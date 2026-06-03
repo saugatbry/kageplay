@@ -1,4 +1,5 @@
 import { hianime } from "@/lib/hianime";
+import { cachedJson } from "@/lib/api-cache";
 
 export async function GET(
   request: Request,
@@ -8,9 +9,9 @@ export async function GET(
   try {
     const { id } = params;
     const data = await hianime.getEpisodes(id);
-    return Response.json({ data });
+    return cachedJson({ data });
   } catch (err) {
     console.log(err);
-    return Response.json({ error: "something went wrong" }, { status: 500 });
+    return cachedJson({ error: "something went wrong" }, { status: 500, ttl: 0 });
   }
 }
