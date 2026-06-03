@@ -3,11 +3,12 @@ import { Input } from "./ui/input";
 import { SearchIcon, SlidersHorizontal } from "lucide-react";
 import useDebounce from "@/hooks/use-debounce";
 import { useSearchAnime } from "@/query/search-anime";
+import { useSearchManga } from "@/query/get-manga-data";
 import Image from "next/image";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 import Tooltip from "./common/tooltip";
 import { useProviderStore } from "@/store/provider-store";
@@ -24,9 +25,21 @@ const SearchBar = ({
   const debouncedValue = useDebounce(searchValue, 300);
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isMangaContext = pathname?.startsWith("/manga");
 
   const { provider } = useProviderStore();
-  const { data: searchResults, isLoading } = useSearchAnime(debouncedValue, provider);
+  const { data: animeResults, isLoading: animeLoading } = useSearchAnime(
+    isMangaContext ? "" : debouncedValue,
+    provider,
+  );
+  const { data: mangaResults, isLoading: mangaLoading } = useSearchManga(
+    isMangaContext ? debouncedValue : "",
+  );
+
+  const isLoading = isMangaContext ? mangaLoading : animeLoading;
+  const searchResults = isMangaContext ? mangaResults : animeResults;
 
   const handleBlur = () => {
     setTimeout(() => {
@@ -39,7 +52,7 @@ const SearchBar = ({
     }, 100);
   };
 
-  const handleAnimeClick = () => {
+  const handleResultClick = () => {
     setSearchValue("");
     setIsFocused(false);
     if (onAnimeClick) {
@@ -49,9 +62,12 @@ const SearchBar = ({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchValue.trim()) {
-      // Redirect to the search results page
-      router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}&provider=${provider}`);
-      setIsFocused(false); // Hide the dropdown results
+      if (isMangaContext) {
+        router.push(`${ROUTES.MANGA}?q=${encodeURIComponent(searchValue)}`);
+      } else {
+        router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}&provider=${provider}`);
+      }
+      setIsFocused(false);
       if (onAnimeClick) {
         onAnimeClick();
       }
@@ -64,24 +80,26 @@ const SearchBar = ({
         <SearchIcon suppressHydrationWarning className="absolute inset-y-0 left-2 m-auto h-4 w-4" />
       <Input
         className="w-full h-10 pl-8 text-white border-white"
-        placeholder="Enter your keywords to search..."
+        placeholder={isMangaContext ? "Search manga..." : "Enter your keywords to search..."}
         onChange={(e) => setSearchValue(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={handleBlur}
         value={searchValue}
         onKeyDown={handleKeyDown}
       />
-      <Button
-        variant="secondary"
-        className="absolute  text-white right-2 top-1/2 -translate-y-1/2 h-2/3"
-        onClick={() => {
-          router.push(`${ROUTES.SEARCH}?q=""&provider=${provider}`);
-        }}
-      >
-        <Tooltip side="bottom" content="Filter">
-            <SlidersHorizontal suppressHydrationWarning className="h-4 w-4" />
-        </Tooltip>
-      </Button>
+      {!isMangaContext && (
+        <Button
+          variant="secondary"
+          className="absolute  text-white right-2 top-1/2 -translate-y-1/2 h-2/3"
+          onClick={() => {
+            router.push(`${ROUTES.SEARCH}?q=""&provider=${provider}`);
+          }}
+        >
+          <Tooltip side="bottom" content="Filter">
+              <SlidersHorizontal suppressHydrationWarning className="h-4 w-4" />
+          </Tooltip>
+        </Button>
+      )}
       {isFocused && searchValue && (
         <div
           ref={resultsRef}
@@ -100,57 +118,87 @@ const SearchBar = ({
                 );
               })}
 
-            {searchResults?.map((anime) => (
-              <a key={anime.id + (anime.provider || "")} href={ROUTES.ANIME_DETAILS + "/" + anime.id}>
-                <div
-                  className="flex items-start gap-4 hover:bg-[#121212] rounded-md p-2 cursor-pointer"
-                  onClick={handleAnimeClick}
-                >
-                  <div className="h-[6.25rem] w-[5rem] overflow-hidden rounded-md flex-shrink-0">
-                    <Image
-                      src={anime.poster}
-                      alt={anime.name}
-                      height={100}
-                      width={100}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="line-clamp-2 text-sm">
-                        {!!anime.name ? anime.name : anime.jname}
-                      </h3>
-                      {anime.provider && (
-                        <span className={cn([
-                          "text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
-                          anime.provider === "hindi"
-                            ? "text-orange-400 bg-orange-500/10 border border-orange-500"
-                            : anime.provider === "both"
-                              ? "text-green-400 bg-green-500/10 border border-green-500"
-                              : "text-blue-400 bg-blue-500/10 border border-blue-500",
-                        ])}>
-                          {anime.provider === "hindi" ? "Hindi" : anime.provider === "both" ? "Sub/Dub+Hindi" : "Sub/Dub"}
-                        </span>
-                      )}
+            {isMangaContext
+              ? (mangaResults || []).map((manga) => (
+                  <a key={manga.slug} href={`/manga/${manga.slug}`}>
+                    <div
+                      className="flex items-start gap-4 hover:bg-[#121212] rounded-md p-2 cursor-pointer"
+                      onClick={handleResultClick}
+                    >
+                      <div className="h-[6.25rem] w-[5rem] overflow-hidden rounded-md flex-shrink-0">
+                        <Image
+                          src={manga.poster}
+                          alt={manga.title}
+                          height={100}
+                          width={100}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="line-clamp-2 text-sm">{manga.title}</h3>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0 uppercase">
+                            {manga.type || "Manga"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400">{manga.latest_chapter}</p>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm">{anime.type}</div>
-                      <p className="text-xs text-gray-300">
-                        {anime.moreInfo?.join(", ")}
-                      </p>
+                  </a>
+                ))
+              : (animeResults || []).map((anime) => (
+                  <a key={anime.id + (anime.provider || "")} href={ROUTES.ANIME_DETAILS + "/" + anime.id}>
+                    <div
+                      className="flex items-start gap-4 hover:bg-[#121212] rounded-md p-2 cursor-pointer"
+                      onClick={handleResultClick}
+                    >
+                      <div className="h-[6.25rem] w-[5rem] overflow-hidden rounded-md flex-shrink-0">
+                        <Image
+                          src={anime.poster}
+                          alt={anime.name}
+                          height={100}
+                          width={100}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="line-clamp-2 text-sm">
+                            {!!anime.name ? anime.name : anime.jname}
+                          </h3>
+                          {anime.provider && (
+                            <span className={cn([
+                              "text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0",
+                              anime.provider === "hindi"
+                                ? "text-orange-400 bg-orange-500/10 border border-orange-500"
+                                : anime.provider === "both"
+                                  ? "text-green-400 bg-green-500/10 border border-green-500"
+                                  : "text-blue-400 bg-blue-500/10 border border-blue-500",
+                            ])}>
+                              {anime.provider === "hindi" ? "Hindi" : anime.provider === "both" ? "Sub/Dub+Hindi" : "Sub/Dub"}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm">{anime.type}</div>
+                          <p className="text-xs text-gray-300">
+                            {anime.moreInfo?.join(", ")}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </a>
-            ))}
-            <Link
-              className="w-full"
-              href={`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}&provider=${provider}`}
-            >
-              <Button className="w-full bg-[#3b82f6] text-white">
-                Show More
-              </Button>
-            </Link>
+                  </a>
+                ))}
+            {!isMangaContext && (
+              <Link
+                className="w-full"
+                href={`${ROUTES.SEARCH}?q=${encodeURIComponent(searchValue)}&provider=${provider}`}
+              >
+                <Button className="w-full bg-[#3b82f6] text-white">
+                  Show More
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -173,42 +221,70 @@ const SearchBar = ({
                 );
               })}
 
-            {searchResults?.slice(0, 5).map((anime) => (
-              <Link key={anime.id + (anime.provider || "")} href={ROUTES.ANIME_DETAILS + "/" + anime.id}>
-                <div
-                  className="flex items-center gap-2 hover:bg-[#121212] rounded-md p-1 cursor-pointer"
-                  onClick={handleAnimeClick}
-                >
-                  <div className="h-[2.5rem] w-[1.875rem] overflow-hidden rounded-md">
-                    <Image
-                      src={anime.poster}
-                      alt={anime.name}
-                      height={100}
-                      width={100}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2 text-sm">
-                    <div className="flex items-center gap-1">
-                      <h3>{!!anime.name ? anime.name : anime.jname}</h3>
-                      {anime.provider && (
-                        <span className={cn([
-                          "text-[10px] font-bold px-1 py-0.5 rounded-full shrink-0",
-                          anime.provider === "hindi"
-                            ? "text-orange-400 bg-orange-500/10 border border-orange-500"
-                            : anime.provider === "both"
-                              ? "text-green-400 bg-green-500/10 border border-green-500"
-                              : "text-blue-400 bg-blue-500/10 border border-blue-500",
-                        ])}>
-                          {anime.provider === "hindi" ? "Hindi" : anime.provider === "both" ? "S/D+Hindi" : "S/D"}
-                        </span>
-                      )}
+            {isMangaContext
+              ? (mangaResults || []).slice(0, 5).map((manga) => (
+                  <Link key={manga.slug} href={`/manga/${manga.slug}`}>
+                    <div
+                      className="flex items-center gap-2 hover:bg-[#121212] rounded-md p-1 cursor-pointer"
+                      onClick={handleResultClick}
+                    >
+                      <div className="h-[2.5rem] w-[1.875rem] overflow-hidden rounded-md">
+                        <Image
+                          src={manga.poster}
+                          alt={manga.title}
+                          height={100}
+                          width={100}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2 text-sm">
+                        <div className="flex items-center gap-1">
+                          <h3>{manga.title}</h3>
+                          <span className="text-[10px] font-bold px-1 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase">
+                            {manga.type || "Manga"}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-400">{manga.latest_chapter}</div>
+                      </div>
                     </div>
-                    <div className="text-xs">{anime.rank}</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                  </Link>
+                ))
+              : (animeResults || []).slice(0, 5).map((anime) => (
+                  <Link key={anime.id + (anime.provider || "")} href={ROUTES.ANIME_DETAILS + "/" + anime.id}>
+                    <div
+                      className="flex items-center gap-2 hover:bg-[#121212] rounded-md p-1 cursor-pointer"
+                      onClick={handleResultClick}
+                    >
+                      <div className="h-[2.5rem] w-[1.875rem] overflow-hidden rounded-md">
+                        <Image
+                          src={anime.poster}
+                          alt={anime.name}
+                          height={100}
+                          width={100}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2 text-sm">
+                        <div className="flex items-center gap-1">
+                          <h3>{!!anime.name ? anime.name : anime.jname}</h3>
+                          {anime.provider && (
+                            <span className={cn([
+                              "text-[10px] font-bold px-1 py-0.5 rounded-full shrink-0",
+                              anime.provider === "hindi"
+                                ? "text-orange-400 bg-orange-500/10 border border-orange-500"
+                                : anime.provider === "both"
+                                  ? "text-green-400 bg-green-500/10 border border-green-500"
+                                  : "text-blue-400 bg-blue-500/10 border border-blue-500",
+                            ])}>
+                              {anime.provider === "hindi" ? "Hindi" : anime.provider === "both" ? "S/D+Hindi" : "S/D"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs">{anime.rank}</div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
           </div>
         </div>
       )}

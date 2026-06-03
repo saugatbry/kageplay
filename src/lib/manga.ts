@@ -1,5 +1,25 @@
 const API_BASE = "https://kageread-api.vercel.app/api";
 
+export interface MangaSearchResult {
+  slug: string;
+  title: string;
+  poster: string;
+  latest_chapter: string;
+  type: string;
+  time: string;
+}
+
+export async function searchManga(q: string): Promise<MangaSearchResult[]> {
+  if (!q.trim()) return [];
+  const res = await fetch(`${API_BASE}/manga/search?q=${encodeURIComponent(q)}`, {
+    headers: { "User-Agent": "Mozilla/5.0" },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const data = await res.json();
+  return data?.results || [];
+}
+
 export interface MangaChapter {
   id: string;
   number: string;
