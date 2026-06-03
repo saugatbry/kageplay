@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
     title: APP_DEFAULT_TITLE,
     description: APP_DESCRIPTION,
-    url: "https://kageplay.vercel.app",
+    url: "https://kageplay.saugii650.workers.dev",
     locale: "en_US",
     images: [
       {
