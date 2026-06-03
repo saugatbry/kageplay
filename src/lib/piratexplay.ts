@@ -27,7 +27,7 @@ function tmdbBackdrop(path: string): string {
   return path ? `${TMDB_IMG}/original${path}` : "";
 }
 
-function extractTitleFromSlug(slug: string): string {
+function _extractTitleFromSlug(slug: string): string {
   return slug.replace(/-season-\d+-\d+$/, "");
 }
 
@@ -98,7 +98,6 @@ export const piratexplay = {
       const airing = mapped.filter((a: any) => a.status === "returning series");
       const ended = mapped.filter((a: any) => a.status === "ended");
       const movies = mapped.filter((a: any) => a.type === "Movie");
-      const tv = mapped.filter((a: any) => a.type === "TV");
 
       const spotlightAnimes = byRating.slice(0, 7).map((a: any) => ({
         ...a,
@@ -147,8 +146,8 @@ export const piratexplay = {
       const rating = tmdb.rating ? String(tmdb.rating) : "";
 
       let seasonList: { id: string; name: string; title: string; poster: string; isCurrent: boolean }[] = [];
-      let relatedAnimes: { id: string; name: string; jname: string; poster: string; episodes: { sub: number | null; dub: number | null }; type: string }[] = [];
-      let recommendedAnimes: { id: string; name: string; jname: string; poster: string; duration: string; type: string; rating?: string; episodes: { sub: number | null; dub: number | null } }[] = [];
+      const relatedAnimes: { id: string; name: string; jname: string; poster: string; episodes: { sub: number | null; dub: number | null }; type: string }[] = [];
+      const recommendedAnimes: { id: string; name: string; jname: string; poster: string; duration: string; type: string; rating?: string; episodes: { sub: number | null; dub: number | null } }[] = [];
 
       if (tmdb.type !== "movie") {
         seasonList = [{
@@ -259,7 +258,7 @@ export const piratexplay = {
     }
   },
 
-  async search(query: string, page: number = 1) {
+  async search(query: string, _page: number = 1) {
     try {
       const data = await fetchJson(`${PUBLIC_API}/search.php/?keyword=${encodeURIComponent(query)}&page=1`);
       const totalPages = data?.total_pages || 1;
@@ -483,7 +482,6 @@ export const piratexplay = {
     try {
       const data = await fetchJson(`${PUBLIC_API}/sources.php?id=${encodeURIComponent(episodeId)}`);
       const sources = data?.sources || [];
-      const downloads = data?.downloads || [];
 
       const idx = typeof serverId === 'number' && serverId > 0 && serverId <= sources.length ? serverId - 1 : 0;
       const selected = sources[idx] || sources[0];

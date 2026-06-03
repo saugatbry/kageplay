@@ -54,7 +54,6 @@ const VideoPlayerSection = () => {
   const { data: serversData } = useGetEpisodeServers(activeEpisode, watchType as string);
   const { data: episodesData } = useGetAllEpisodes(animeId ?? "", watchType as string);
 
-  const isMAL = animeId ? /^\d+$/.test(animeId) : false;
   const isHindi = watchType === "hindi";
 
   const currentEpIndex = useMemo(() => {
@@ -87,21 +86,6 @@ const VideoPlayerSection = () => {
 
   const [serverName, setServerName] = useState<string>("");
   const [key, setKey] = useState<string>("");
-  const [watchedDetails, setWatchedDetails] = useState<Array<IWatchedAnime>>(
-    [],
-  );
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("watched");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setWatchedDetails(parsed);
-      }
-    } catch {
-      localStorage.removeItem("watched");
-    }
-  }, []);
 
   useEffect(() => {
     const { serverName, key } = getFallbackServer(serversData);
@@ -167,7 +151,6 @@ const VideoPlayerSection = () => {
         },
       ];
       localStorage.setItem("watched", JSON.stringify(next));
-      setWatchedDetails(next);
     } else if (!existingAnime.episodes.includes(selectedEpisode)) {
       const next = currentWatched.map((wa) =>
         wa.anime.id === animeIdStore
@@ -175,7 +158,6 @@ const VideoPlayerSection = () => {
           : wa,
       );
       localStorage.setItem("watched", JSON.stringify(next));
-      setWatchedDetails(next);
     }
     //eslint-disable-next-line
   }, [episodeData, selectedEpisode, anime]);
