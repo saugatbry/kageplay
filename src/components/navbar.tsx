@@ -59,7 +59,7 @@ const NavBar = () => {
 
         <div className="relative">
           {showTip && (
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-max z-50">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max z-50">
               <div className="bg-slate-800 text-blue-300 text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg border border-blue-500/30 whitespace-nowrap flex items-center gap-2">
                 Click to switch between Hindi &amp; Sub/Dub
                 <button
@@ -71,7 +71,7 @@ const NavBar = () => {
                 </button>
               </div>
               <div className="flex justify-center -mt-px">
-                <div className="w-2 h-2 bg-slate-800 border-r border-b border-blue-500/30 rotate-45 -translate-y-1/2"></div>
+                <div className="w-2 h-2 bg-slate-800 border-l border-t border-blue-500/30 rotate-45 translate-y-1/2"></div>
               </div>
             </div>
           )}

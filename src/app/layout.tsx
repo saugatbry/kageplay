@@ -160,12 +160,12 @@ export default function RootLayout({
             <NavBar />
             <main id="main-content" role="main">
               {children}
+              <Ads />
             </main>
             <Footer />
           </QueryProvider>
         </ThemeProvider>
         <Toaster />
-        <Ads />
       </body>
     </html>
   );
