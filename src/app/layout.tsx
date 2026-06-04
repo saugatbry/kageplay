@@ -11,6 +11,7 @@ import { PublicEnvScript } from "next-runtime-env";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import { Toaster } from "@/components/ui/sonner";
+import Ads from "@/components/ads";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -164,6 +165,7 @@ export default function RootLayout({
           </QueryProvider>
         </ThemeProvider>
         <Toaster />
+        <Ads />
       </body>
     </html>
   );

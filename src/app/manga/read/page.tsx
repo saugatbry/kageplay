@@ -1,35 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { useGetChapterImages } from "@/query/get-manga-data";
 
-interface ChapterImage {
-  page: number;
-  url: string;
-}
-
-const MangaReaderPage = () => {
+function ReaderContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
   const title = searchParams.get("title") || "Reading";
+  const mangaSlug = searchParams.get("manga") || "";
 
-  const [images, setImages] = useState<ChapterImage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    if (!url) return;
-    setLoading(true);
-    api
-      .get("/api/manga/images", { params: { url } })
-      .then((res) => setImages(res.data?.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [url]);
+  const { data: images, isLoading } = useGetChapterImages(url || "");
 
   if (!url) {
     return (
@@ -42,47 +25,32 @@ const MangaReaderPage = () => {
   return (
     <div className="min-h-screen bg-black">
       <div className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-sm border-b border-white/5 p-3 flex items-center justify-between">
-        <Link
-          href={`/manga/${encodeURIComponent(url.split("/manga/")[1]?.split("/")[0] || "")}`}
-          className="text-sm text-gray-400 hover:text-white truncate max-w-[200px]"
-        >
-          {title}
-        </Link>
-        {images.length > 0 && (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+        <div className="flex items-center gap-3">
+          {mangaSlug && (
+            <Link
+              href={`/manga/${mangaSlug}`}
+              className="text-gray-400 hover:text-white transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <span>
-              {page} / {images.length}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={page >= images.length}
-              onClick={() => setPage((p) => Math.min(images.length, p + 1))}
-            >
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+          )}
+          <span className="text-sm text-gray-400 truncate max-w-[200px]">{title}</span>
+        </div>
+        {images && images.length > 0 && (
+          <span className="text-sm text-gray-500">{images.length} pages</span>
         )}
       </div>
       <div className="flex flex-col items-center p-4">
-        {loading && (
+        {isLoading && (
           <div className="flex items-center gap-2 py-20 text-gray-400">
             <Loader2 className="h-6 w-6 animate-spin" />
             Loading chapter...
           </div>
         )}
-        {!loading && images.length === 0 && (
+        {!isLoading && (!images || images.length === 0) && (
           <p className="text-gray-400 py-20">No images found for this chapter.</p>
         )}
-        {images.map((img, idx) => (
+        {(images || []).map((img, idx) => (
           <img
             key={idx}
             src={img.url}
@@ -93,6 +61,18 @@ const MangaReaderPage = () => {
         ))}
       </div>
     </div>
+  );
+}
+
+const MangaReaderPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      </div>
+    }>
+      <ReaderContent />
+    </Suspense>
   );
 };
 
