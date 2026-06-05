@@ -19,6 +19,12 @@ async function fetchJson(url: string): Promise<any> {
     signal: AbortSignal.timeout(15000),
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const text = await res.text();
+    console.debug(`[fetchJson] Non-JSON response from ${url}: ${text.slice(0, 200)}`);
+    throw new Error(`Expected JSON but got ${contentType}`);
+  }
   const data = await res.json();
   if (data.status === "error") throw new Error(data.message || "API error");
   await setCache(url, data);
