@@ -1,15 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePremiumStore, PLANS, type PlanId } from "@/store/premium-store";
 import { useAuthStore } from "@/store/auth-store";
 import { Crown, Zap, ShieldCheck, CheckCircle, Loader2, XCircle, CreditCard, Smartphone } from "lucide-react";
 import Link from "next/link";
-import { env } from "next-runtime-env";
-
-const UPI_ID = () => env("NEXT_PUBLIC_UPI_ID") || "psyflowz@fam";
-const UPI_NAME = () => env("NEXT_PUBLIC_UPI_NAME") || "KagePlay";
-const QR_IMAGE = () => env("NEXT_PUBLIC_QR_IMAGE") || "/famPayQr.png";
 
 type Step = "plans" | "payment" | "verify" | "success";
 
@@ -24,6 +19,11 @@ export default function PremiumPage() {
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [config, setConfig] = useState({ UPI_ID: "psyflowz@fam", UPI_NAME: "KagePlay", QR_IMAGE: "/famPayQr.png" });
+
+  useEffect(() => {
+    fetch("/api/config").then(r => r.json()).then(setConfig).catch(() => {});
+  }, []);
 
   const plan = selectedPlan ? PLANS[selectedPlan] : null;
 
@@ -192,7 +192,7 @@ export default function PremiumPage() {
 
               <div className="bg-white rounded-2xl p-4 mb-4 inline-block">
                 <img
-                  src={QR_IMAGE()}
+                  src={config.QR_IMAGE}
                   alt="FamPay QR"
                   width={200}
                   height={200}
@@ -206,7 +206,7 @@ export default function PremiumPage() {
               <div className="text-center space-y-1 mb-4">
                 <div className="text-xs text-gray-400">Or pay via UPI ID:</div>
                 <div className="font-mono text-lg text-amber-400 font-bold bg-amber-500/10 rounded-xl px-4 py-2 inline-block border border-amber-500/20">
-                  {UPI_ID()}
+                  {config.UPI_ID}
                 </div>
               </div>
 
@@ -214,7 +214,7 @@ export default function PremiumPage() {
                 <div className="flex items-center justify-center gap-2 text-sm">
                   <Smartphone className="h-4 w-4 text-green-400" />
                   <span className="text-gray-300">UPI ID:</span>
-                  <span className="font-mono text-amber-400 font-bold">{UPI_ID()}</span>
+                  <span className="font-mono text-amber-400 font-bold">{config.UPI_ID}</span>
                 </div>
                 <div className="text-xs text-gray-500">
                   Pay exactly <span className="font-bold text-white">₹{plan.price}</span> via any UPI app
