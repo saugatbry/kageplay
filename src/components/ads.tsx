@@ -66,13 +66,14 @@ const Ads = () => {
   }, [isPremium, isExcluded, loadScript]);
 
   useEffect(() => {
+    if (isExcluded) return;
     const bait = document.createElement("script");
     bait.src = POPADS_SCRIPT;
     bait.async = true;
     bait.onerror = () => setAdblockDetected(true);
     document.head.appendChild(bait);
     return () => { bait.remove(); };
-  }, []);
+  }, [isExcluded]);
 
   if (!mounted || isExcluded) return null;
 
