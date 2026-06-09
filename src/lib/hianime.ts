@@ -194,8 +194,15 @@ export const hianime = {
   async getInfo(id: string) {
     if (isMAL(id)) {
       const a = await getJikanInfo(id);
-      if (!a) throw new Error("Anime not found");
-      return buildInfoResponse(a);
+      if (a) return buildInfoResponse(a);
+      try {
+        const searchResult = await aniverse.search(id, 1).catch(() => ({ animes: [] }));
+        if (searchResult.animes?.length > 0) {
+          const aniverseId = searchResult.animes[0].id;
+          if (aniverseId) return await aniverse.getInfo(aniverseId);
+        }
+      } catch {}
+      throw new Error("Anime not found");
     }
     try {
       const data = await aniverse.getInfo(id);

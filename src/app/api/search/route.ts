@@ -44,7 +44,7 @@ export async function GET(request: Request) {
         },
       ).then((r) => r.json()).catch(() => ({ data: [], pagination: { last_visible_page: 1, has_next_page: false } }));
 
-      const jikanAnimes = (jikanRaw.data || []).map((item: any) => ({
+      let jikanAnimes = (jikanRaw.data || []).map((item: any) => ({
         id: String(item.mal_id),
         name: item.title_english || item.title || "Unknown",
         jname: item.title_japanese || "",
@@ -54,6 +54,21 @@ export async function GET(request: Request) {
         rank: item.rank || null,
         provider: "subdub" as const,
       }));
+
+      if (!jikanAnimes.length) {
+        const hindiResults = await aniverse.search(params.q, params.page).catch(() => ({
+          animes: [], totalPages: 1, hasNextPage: false, currentPage: 1,
+        }));
+        jikanAnimes = (hindiResults?.animes || []).map((a: any) => ({ ...a, provider: "subdub" as const }));
+        return Response.json({
+          data: {
+            animes: jikanAnimes,
+            totalPages: hindiResults?.totalPages || 1,
+            hasNextPage: hindiResults?.hasNextPage || false,
+            currentPage: params.page,
+          },
+        });
+      }
 
       return Response.json({
         data: {

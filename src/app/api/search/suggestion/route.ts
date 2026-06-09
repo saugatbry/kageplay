@@ -27,7 +27,7 @@ export async function GET(request: Request) {
         signal: AbortSignal.timeout(8000),
       }).then((r) => r.json()).catch(() => ({ data: [] }));
 
-      const jikanResults = (jikanRaw.data || []).map((item: any) => ({
+      let jikanResults = (jikanRaw.data || []).map((item: any) => ({
         id: String(item.mal_id),
         name: item.title_english || item.title || "Unknown",
         jname: item.title_japanese || "",
@@ -38,6 +38,11 @@ export async function GET(request: Request) {
         moreInfo: (item.genres || []).map((g: any) => g.name),
         provider: "subdub" as const,
       }));
+
+      if (!jikanResults.length) {
+        const hindiSuggestions = await aniverse.searchSuggestions(q).catch(() => []);
+        jikanResults = (hindiSuggestions || []).map((item: any) => ({ ...item, provider: "subdub" as const }));
+      }
 
       return Response.json({ data: jikanResults.slice(0, 12) });
     }
