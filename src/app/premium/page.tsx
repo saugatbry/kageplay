@@ -10,7 +10,7 @@ type Step = "plans" | "payment" | "verify" | "success";
 
 export default function PremiumPage() {
   const auth = useAuthStore();
-  const { isPremium, premiumUser, addPayment, checkPremium } = usePremiumStore();
+  const { isPremium, premiumUser, grantPremium, checkPremium } = usePremiumStore();
   const [step, setStep] = useState<Step>("plans");
   const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
   const [email, setEmail] = useState("");
@@ -43,7 +43,13 @@ export default function PremiumPage() {
 
     setVerifying(true);
     try {
-      const res = await fetch(`/api/premium/verify?utr=${encodeURIComponent(utr.trim())}`);
+      const params = new URLSearchParams({
+        utr: utr.trim(),
+        username: username.trim(),
+        email: email.trim(),
+        plan: selectedPlan!,
+      });
+      const res = await fetch(`/api/premium/verify?${params}`);
       const data = await res.json();
 
       if (!data.success) {
@@ -64,18 +70,11 @@ export default function PremiumPage() {
         return;
       }
 
-      addPayment({
-        username: username.trim(),
-        email: email.trim(),
-        utr: utr.trim(),
-        amount: plan.price,
-        plan: selectedPlan!,
-        status: "pending",
-      });
+      grantPremium(username.trim(), email.trim(), selectedPlan!, "payment-utr");
 
       checkPremium(username.trim());
       setStep("success");
-      setSuccessMsg(`Payment verified! Your ${plan.label} premium plan is being activated.`);
+      setSuccessMsg(`Premium activated! Your ${plan.label} plan is now active.`);
     } catch {
       setError("Verification failed. Please try again.");
     }
@@ -282,7 +281,7 @@ export default function PremiumPage() {
             <h2 className="text-2xl font-bold mb-2">Payment Submitted!</h2>
             <p className="text-gray-400 mb-8">{successMsg}</p>
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-6 py-4 mb-8 text-sm text-amber-400">
-              Your premium will be activated manually within 24 hours.
+              Your premium is now active. Enjoy ad-free browsing!
               Contact support if you don&apos;t see the changes.
             </div>
             <div className="flex gap-4 justify-center">
