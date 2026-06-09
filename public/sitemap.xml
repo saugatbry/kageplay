@@ -9,4 +9,10 @@
   <sitemap>
     <loc>https://kageplay.qzz.io/sitemap-genre.xml</loc>
   </sitemap>
+  <sitemap>
+    <loc>https://kageplay.qzz.io/sitemap-anime.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://kageplay.qzz.io/sitemap-search.xml</loc>
+  </sitemap>
 </sitemapindex>
