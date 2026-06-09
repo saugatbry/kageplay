@@ -1075,7 +1075,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kageplay.saugii650.workers.dev"),
+  metadataBase: new URL("https://kageplay.qzz.io"),
   applicationName: APP_NAME,
   title: {
     default: APP_DEFAULT_TITLE,
@@ -1093,14 +1093,14 @@ export const metadata: Metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: "https://kageplay.saugii650.workers.dev",
+    canonical: "https://kageplay.qzz.io",
   },
   openGraph: {
     type: "website",
     siteName: APP_NAME,
     title: APP_DEFAULT_TITLE,
     description: APP_DESCRIPTION,
-    url: "https://kageplay.saugii650.workers.dev",
+    url: "https://kageplay.qzz.io",
     locale: "en_US",
     images: [
       {
