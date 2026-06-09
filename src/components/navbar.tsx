@@ -15,6 +15,7 @@ import { Crown, MenuIcon, SearchIcon, X } from "lucide-react";
 import useScrollPosition from "@/hooks/use-scroll-position";
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from "./ui/sheet";
 import LoginPopoverButton from "./login-popover-button";
+import PremiumButton from "./premium-button";
 import { useAuthStore } from "@/store/auth-store";
 import { useProviderStore } from "@/store/provider-store";
 import NavbarAvatar from "./navbar-avatar";
@@ -119,12 +120,13 @@ const NavBar = () => {
           <SearchBar />
           {auth.auth ? <NavbarAvatar auth={auth} /> : <LoginPopoverButton />}
         </div>
-        <div className="lg:hidden flex items-center gap-2">
+        <div className="lg:hidden flex items-center gap-1.5 sm:gap-2">
+          <PremiumButton />
           <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)} aria-label={mobileSearchOpen ? "Close search" : "Open search"} aria-expanded={mobileSearchOpen}>
             <SearchIcon suppressHydrationWarning className="h-5 w-5" />
           </button>
           <MobileMenuSheet trigger={<MenuIcon suppressHydrationWarning aria-label="Open menu" />} />
-          {auth.auth ? <NavbarAvatar auth={auth} /> : <LoginPopoverButton />}
+          {auth.auth && <NavbarAvatar auth={auth} />}
         </div>
       </Container>
       {mobileSearchOpen && (

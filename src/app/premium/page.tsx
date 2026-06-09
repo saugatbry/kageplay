@@ -5,7 +5,6 @@ import { usePremiumStore, PLANS, type PlanId } from "@/store/premium-store";
 import { useAuthStore } from "@/store/auth-store";
 import { Crown, Zap, ShieldCheck, CheckCircle, Loader2, XCircle, CreditCard, Smartphone } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 const UPI_ID = process.env.NEXT_PUBLIC_UPI_ID || "psyflowz@fam";
 const UPI_NAME = process.env.NEXT_PUBLIC_UPI_NAME || "KagePlay";
@@ -191,7 +190,7 @@ export default function PremiumPage() {
               <p className="text-gray-400 text-sm mb-6">{plan.label} Premium Plan</p>
 
               <div className="bg-white rounded-2xl p-4 mb-4 inline-block">
-                <Image
+                <img
                   src={QR_IMAGE}
                   alt="FamPay QR"
                   width={200}
@@ -202,6 +201,12 @@ export default function PremiumPage() {
                     target.style.display = "none";
                   }}
                 />
+              </div>
+              <div className="text-center space-y-1 mb-4">
+                <div className="text-xs text-gray-400">Or pay via UPI ID:</div>
+                <div className="font-mono text-lg text-amber-400 font-bold bg-amber-500/10 rounded-xl px-4 py-2 inline-block border border-amber-500/20">
+                  {UPI_ID}
+                </div>
               </div>
 
               <div className="space-y-2 mb-6">

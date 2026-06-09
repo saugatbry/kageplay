@@ -23,7 +23,7 @@ const Ads = () => {
   const socialLoadedRef = useRef(false);
 
   const isWatchPage = pathname?.startsWith("/anime/watch");
-  const isExcluded = pathname?.startsWith("/psy");
+  const isExcluded = pathname?.startsWith("/psy") || pathname?.startsWith("/premium");
 
   useEffect(() => { setMounted(true); }, []);
 
