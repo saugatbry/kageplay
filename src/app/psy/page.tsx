@@ -1,38 +1,30 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { usePremiumStore, PremiumUser } from "@/store/premium-store";
-import { Users, Banknote, Activity, ShieldCheck, X, Check, Clock } from "lucide-react";
+import { useState } from "react";
+import { usePremiumStore } from "@/store/premium-store";
+import { Users, Banknote, ShieldCheck, X, Clock } from "lucide-react";
 
 const PsyPage = () => {
   const {
     allPremiumUsers, grantPremium, revokePremium,
-    payments, getTraffic, logVisit,
+    payments,
   } = usePremiumStore();
   const [showGrant, setShowGrant] = useState(false);
   const [grantUsername, setGrantUsername] = useState("");
   const [grantEmail, setGrantEmail] = useState("");
-  const [traffic, setTraffic] = useState<{ page: string; count: number; lastVisit: string }[]>([]);
-
-  useEffect(() => {
-    logVisit("/psy");
-    setTraffic(getTraffic());
-  }, []);
 
   const activePremiums = allPremiumUsers.filter((u) => u.active);
   const pendingPayments = payments.filter((p) => p.status === "pending");
-  const totalVisits = traffic.reduce((s, t) => s + t.count, 0);
 
   return (
     <div className="space-y-8 max-w-5xl">
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
           { label: "Active Premium", value: activePremiums.length, icon: ShieldCheck, color: "text-green-400 bg-green-500/10" },
           { label: "Pending Payments", value: pendingPayments.length, icon: Clock, color: "text-amber-400 bg-amber-500/10" },
           { label: "Total Payments", value: payments.length, icon: Banknote, color: "text-blue-400 bg-blue-500/10" },
-          { label: "Page Visits", value: totalVisits, icon: Activity, color: "text-purple-400 bg-purple-500/10" },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-slate-900 border border-white/5 rounded-xl p-4">
             <div className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center mb-3`}>
@@ -42,40 +34,6 @@ const PsyPage = () => {
             <p className="text-xs text-gray-400">{label}</p>
           </div>
         ))}
-      </div>
-
-      {/* Traffic */}
-      <div className="bg-slate-900 border border-white/5 rounded-xl p-5">
-        <h2 className="font-semibold mb-3 flex items-center gap-2">
-          <Activity className="h-4 w-4 text-purple-400" />
-          Page Traffic
-        </h2>
-        {traffic.length === 0 ? (
-          <p className="text-gray-500 text-sm">No traffic data yet</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-400 text-xs border-b border-white/5">
-                  <th className="text-left py-2">Page</th>
-                  <th className="text-right py-2">Visits</th>
-                  <th className="text-right py-2">Last Visit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {traffic.sort((a, b) => b.count - a.count).map((t) => (
-                  <tr key={t.page} className="border-b border-white/5 last:border-0">
-                    <td className="py-2 font-mono text-xs">{t.page}</td>
-                    <td className="text-right py-2">{t.count}</td>
-                    <td className="text-right py-2 text-gray-400 text-xs">
-                      {new Date(t.lastVisit).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
 
       {/* Premium Users */}
@@ -117,7 +75,7 @@ const PsyPage = () => {
               <button
                 onClick={() => {
                   if (grantUsername.trim()) {
-                    grantPremium(grantUsername.trim(), grantEmail.trim(), "admin");
+                    grantPremium(grantUsername.trim(), grantEmail.trim(), "monthly", "admin");
                     setGrantUsername("");
                     setGrantEmail("");
                     setShowGrant(false);
@@ -189,7 +147,7 @@ const PsyPage = () => {
                     <td className="py-2 text-right">
                       <button
                         onClick={() => {
-                          grantPremium(u.username, u.email, "admin");
+                          grantPremium(u.username, u.email, "monthly", "admin");
                         }}
                         className="text-xs text-green-400 hover:text-green-300"
                       >

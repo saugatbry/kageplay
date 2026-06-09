@@ -2,6 +2,7 @@ import React from "react";
 import { InstagramLogoIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
 import Link from "next/link";
+import { Crown } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -14,6 +15,14 @@ const Footer = () => {
         loading="lazy"
         suppressHydrationWarning
       />
+      <Link
+        href="/premium"
+        className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-amber-400 font-bold text-sm hover:from-amber-500/20 hover:to-orange-500/20 transition-all duration-300"
+      >
+        <Crown className="h-4 w-4" />
+        Get Premium — No Ads
+      </Link>
+
       <div className="flex space-x-5 items-center">
         <Link href="https://github.com" target="_blank">
           <svg

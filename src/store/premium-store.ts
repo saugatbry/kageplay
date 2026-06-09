@@ -1,13 +1,21 @@
 "use client";
 import { create } from "zustand";
 
+export type PlanId = "weekly" | "monthly" | "yearly";
+
+export const PLANS = {
+  weekly: { price: 19, label: "1 Week", days: 7 },
+  monthly: { price: 69, label: "1 Month", days: 30 },
+  yearly: { price: 699, label: "1 Year", days: 365 },
+} as const;
+
 export type Payment = {
   id: string;
   username: string;
   email: string;
   utr: string;
-  screenshot: string;
   amount: number;
+  plan: PlanId;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
 };
@@ -16,6 +24,7 @@ export type PremiumUser = {
   username: string;
   email: string;
   premiumUntil: string;
+  plan: PlanId;
   active: boolean;
   grantedBy: string;
   grantedAt: string;
@@ -23,7 +32,6 @@ export type PremiumUser = {
 
 const PREMIUM_KEY = "kage_premium_users";
 const PAYMENTS_KEY = "kage_payments";
-const TRAFFIC_KEY = "kage_traffic";
 
 function loadJSON<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -40,20 +48,24 @@ function saveJSON(key: string, data: unknown) {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
+function calcExpiry(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
 interface PremiumStore {
   isPremium: boolean;
   premiumUser: PremiumUser | null;
   allPremiumUsers: PremiumUser[];
   payments: Payment[];
   checkPremium: (username: string) => void;
-  grantPremium: (username: string, email: string, grantedBy: string) => void;
+  grantPremium: (username: string, email: string, plan: PlanId, grantedBy: string) => void;
   revokePremium: (username: string) => void;
   addPayment: (p: Omit<Payment, "id" | "createdAt">) => void;
   approvePayment: (id: string) => void;
   rejectPayment: (id: string) => void;
   getPendingPayments: () => Payment[];
-  logVisit: (page: string) => void;
-  getTraffic: () => { page: string; count: number; lastVisit: string }[];
 }
 
 export const usePremiumStore = create<PremiumStore>((set, get) => ({
@@ -70,15 +82,15 @@ export const usePremiumStore = create<PremiumStore>((set, get) => ({
     set({ isPremium: !!found, premiumUser: found || null });
   },
 
-  grantPremium: (username: string, email: string, grantedBy: string) => {
+  grantPremium: (username: string, email: string, plan: PlanId, grantedBy: string) => {
     const users = get().allPremiumUsers;
-    const until = new Date();
-    until.setMonth(until.getMonth() + 1);
+    const days = PLANS[plan].days;
     const existing = users.findIndex((u) => u.username === username);
     const entry: PremiumUser = {
       username,
       email,
-      premiumUntil: until.toISOString(),
+      premiumUntil: calcExpiry(days),
+      plan,
       active: true,
       grantedBy,
       grantedAt: new Date().toISOString(),
@@ -117,7 +129,7 @@ export const usePremiumStore = create<PremiumStore>((set, get) => ({
     set({ payments });
     const payment = payments.find((p) => p.id === id);
     if (payment) {
-      get().grantPremium(payment.username, payment.email, "payment-auto");
+      get().grantPremium(payment.username, payment.email, payment.plan, "payment-auto");
     }
   },
 
@@ -134,18 +146,4 @@ export const usePremiumStore = create<PremiumStore>((set, get) => ({
   },
 
   getPendingPayments: () => get().payments.filter((p) => p.status === "pending"),
-
-  logVisit: (page: string) => {
-    const traffic = loadJSON<{ page: string; count: number; lastVisit: string }[]>(TRAFFIC_KEY, []);
-    const existing = traffic.findIndex((t) => t.page === page);
-    if (existing >= 0) {
-      traffic[existing].count++;
-      traffic[existing].lastVisit = new Date().toISOString();
-    } else {
-      traffic.push({ page, count: 1, lastVisit: new Date().toISOString() });
-    }
-    saveJSON(TRAFFIC_KEY, traffic);
-  },
-
-  getTraffic: () => loadJSON<{ page: string; count: number; lastVisit: string }[]>(TRAFFIC_KEY, []),
 }));

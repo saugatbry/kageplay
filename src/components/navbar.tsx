@@ -11,7 +11,7 @@ import { ROUTES } from "@/constants/routes";
 import React, { ReactNode, useEffect, useState } from "react";
 
 import SearchBar from "./search-bar";
-import { MenuIcon, SearchIcon, X } from "lucide-react";
+import { Crown, MenuIcon, SearchIcon, X } from "lucide-react";
 import useScrollPosition from "@/hooks/use-scroll-position";
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from "./ui/sheet";
 import LoginPopoverButton from "./login-popover-button";
@@ -19,7 +19,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useProviderStore } from "@/store/provider-store";
 import NavbarAvatar from "./navbar-avatar";
 
-const menuItems: Array<{ title: string; href?: string }> = [
+const menuItems: Array<{ title: string; href?: string; premium?: boolean }> = [
   {
     title: "Anime",
     href: ROUTES.SEARCH,
@@ -27,6 +27,11 @@ const menuItems: Array<{ title: string; href?: string }> = [
   {
     title: "Manga",
     href: ROUTES.MANGA,
+  },
+  {
+    title: "Premium",
+    href: "/premium",
+    premium: true,
   },
 ];
 
@@ -93,11 +98,22 @@ const NavBar = () => {
         </div>
 
         <div className="hidden lg:flex items-center gap-10 ml-20">
-          {menuItems.map((menu, idx) => (
-            <Link href={menu.href || "#"} key={idx}>
-              {menu.title}
-            </Link>
-          ))}
+          {menuItems.map((menu, idx) =>
+            menu.premium ? (
+              <Link
+                key={idx}
+                href={menu.href || "#"}
+                className="flex items-center gap-1.5 text-amber-400 font-bold hover:text-amber-300 transition-colors"
+              >
+                <Crown className="h-4 w-4" />
+                {menu.title}
+              </Link>
+            ) : (
+              <Link href={menu.href || "#"} key={idx}>
+                {menu.title}
+              </Link>
+            )
+          )}
         </div>
         <div className="w-1/3 hidden lg:flex items-center gap-5">
           <SearchBar />
@@ -137,15 +153,27 @@ const MobileMenuSheet = ({ trigger }: { trigger: ReactNode }) => {
             <X />
           </SheetClose>
           <div className="flex flex-col gap-5 mt-10">
-            {menuItems.map((menu, idx) => (
-              <Link
-                href={menu.href || "#"}
-                key={idx}
-                onClick={() => setOpen(false)}
-              >
-                {menu.title}
-              </Link>
-            ))}
+            {menuItems.map((menu, idx) =>
+              menu.premium ? (
+                <Link
+                  href={menu.href || "#"}
+                  key={idx}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-1.5 text-amber-400 font-bold"
+                >
+                  <Crown className="h-4 w-4" />
+                  {menu.title}
+                </Link>
+              ) : (
+                <Link
+                  href={menu.href || "#"}
+                  key={idx}
+                  onClick={() => setOpen(false)}
+                >
+                  {menu.title}
+                </Link>
+              )
+            )}
             <button
               onClick={() => {
                 setProvider(provider === "subdub" ? "hindi" : "subdub");

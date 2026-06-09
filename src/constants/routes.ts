@@ -5,4 +5,5 @@ export const ROUTES = {
   SEARCH: "/search",
   MANGA: "/manga",
   MANGA_READ: "/manga/read",
+  PREMIUM: "/premium",
 };

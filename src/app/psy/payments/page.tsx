@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { usePremiumStore } from "@/store/premium-store";
-import { Check, X, ExternalLink, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Check, X, Clock, CheckCircle, XCircle } from "lucide-react";
 
 const PaymentsPage = () => {
   const { payments, approvePayment, rejectPayment } = usePremiumStore();
@@ -40,14 +40,6 @@ const PaymentsPage = () => {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    {p.screenshot && (
-                      <button
-                        onClick={() => window.open(p.screenshot, "_blank")}
-                        className="px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs flex items-center gap-1"
-                      >
-                        <ExternalLink className="h-3 w-3" /> Screenshot
-                      </button>
-                    )}
                     <button
                       onClick={() => approvePayment(p.id)}
                       className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-xs font-semibold flex items-center gap-1"
