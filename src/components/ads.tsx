@@ -4,7 +4,9 @@ import { usePremiumStore } from "@/store/premium-store";
 import { usePathname } from "next/navigation";
 import { ShieldAlert, X } from "lucide-react";
 
-const POPADS_SCRIPT = "https://pl29632930.effectivecpmnetwork.com/8a/25/8a/8a258a2cffda14fcdc96a465e718f1e2.js";
+const POPADS_SCRIPT = "https://pl29684527.effectivecpmnetwork.com/47/65/a3/4765a3a4b92dbb27c332caf217e2612e.js";
+const SMARTLINK_URL = "https://www.effectivecpmnetwork.com/gu2n4yhb?key=375952c0a0d7bdd2466f752a9e53b970";
+const SOCIALBAR_SCRIPT = "https://pl29684528.effectivecpmnetwork.com/23/ba/7f/23ba7fc3a137a0d1657183daf7b87caa.js";
 const INSTAGRAM = "https://instagram.com/psyflowz";
 
 function randomDelay(min: number, max: number) {
@@ -18,21 +20,24 @@ const Ads = () => {
   const [dismissBlock, setDismissBlock] = useState(false);
   const [mounted, setMounted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const loadedRef = useRef(false);
+  const socialLoadedRef = useRef(false);
 
   const isWatchPage = pathname?.startsWith("/anime/watch");
   const isExcluded = pathname?.startsWith("/psy");
 
   useEffect(() => { setMounted(true); }, []);
 
-  const loadPopad = useCallback(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
+  const loadScript = useCallback((src: string) => {
     const s = document.createElement("script");
-    s.src = POPADS_SCRIPT;
+    s.src = src;
     s.async = true;
     document.head.appendChild(s);
+    return s;
   }, []);
+
+  const loadPopad = useCallback(() => {
+    loadScript(POPADS_SCRIPT);
+  }, [loadScript]);
 
   const scheduleNext = useCallback(() => {
     const min = isWatchPage ? 420 : 180;
@@ -51,6 +56,14 @@ const Ads = () => {
     scheduleNext();
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [isPremium, mounted, isExcluded, loadPopad, scheduleNext]);
+
+  useEffect(() => {
+    if (isPremium || isExcluded) return;
+    if (!socialLoadedRef.current) {
+      socialLoadedRef.current = true;
+      loadScript(SOCIALBAR_SCRIPT);
+    }
+  }, [isPremium, isExcluded, loadScript]);
 
   useEffect(() => {
     const bait = document.createElement("script");
@@ -91,14 +104,16 @@ const Ads = () => {
         </div>
       )}
 
-      {/* Ad banner container for display ads */}
       {!isPremium && !adblockDetected && (
-        <div
-          id="kage-ad"
-          className="w-full max-w-4xl mx-auto my-4 min-h-[100px] bg-slate-800/30 rounded-xl border border-white/5 flex items-center justify-center text-xs text-gray-600 relative overflow-hidden"
+        <a
+          href={SMARTLINK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full max-w-4xl mx-auto my-4 min-h-[100px] bg-slate-800/30 rounded-xl border border-white/5 flex items-center justify-center text-xs text-gray-600 relative overflow-hidden hover:border-blue-500/30 hover:bg-slate-800/50 transition-colors"
         >
           <span className="absolute top-1 left-2 text-[10px] text-gray-600">ad</span>
-        </div>
+          <span className="text-gray-400 text-sm">Advertisement</span>
+        </a>
       )}
     </>
   );
