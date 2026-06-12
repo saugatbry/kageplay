@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Avatar from "./common/avatar";
 import { IAuthStore } from "@/store/auth-store";
+import { usePremiumStore } from "@/store/premium-store";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import Link from "next/link";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Crown } from "lucide-react";
 import { pb } from "@/lib/pocketbase";
 
 type Props = {
@@ -12,6 +13,13 @@ type Props = {
 
 function NavbarAvatar({ auth }: Props) {
   const [open, setOpen] = React.useState(false);
+  const { isPremium, checkPremium } = usePremiumStore();
+
+  useEffect(() => {
+    if (auth.auth?.username) {
+      checkPremium(auth.auth.username);
+    }
+  }, [auth.auth?.username, checkPremium]);
 
   return (
     auth.auth && (
@@ -22,6 +30,7 @@ function NavbarAvatar({ auth }: Props) {
             url={auth.auth.avatar}
             id={auth.auth.id}
             collectionID={auth.auth.collectionId}
+            premium={isPremium}
           />
         </PopoverTrigger>
         <PopoverContent className="bg-black bg-opacity-50 backdrop-blur-sm w-[200px] mt-4 mr-4 text-sm flex flex-col space-y-2">
@@ -29,6 +38,11 @@ function NavbarAvatar({ auth }: Props) {
             <p>
               Hello, <span className="text-red-500">@{auth.auth.username}</span>
             </p>
+            {isPremium && (
+              <p className="text-xs text-amber-400 flex items-center gap-1 mt-0.5">
+                <Crown className="h-3 w-3" /> Premium
+              </p>
+            )}
           </div>
           <div className="border-b border-gray-600 pb-2">
             <Link

@@ -1,19 +1,31 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePremiumStore } from "@/store/premium-store";
 import { Users, Banknote, ShieldCheck, X, Clock } from "lucide-react";
 
 const PsyPage = () => {
   const {
     allPremiumUsers, grantPremium, revokePremium,
-    payments,
+    payments, loadPremiumUsers, loading,
   } = usePremiumStore();
   const [showGrant, setShowGrant] = useState(false);
   const [grantUsername, setGrantUsername] = useState("");
   const [grantEmail, setGrantEmail] = useState("");
 
+  useEffect(() => {
+    loadPremiumUsers();
+  }, [loadPremiumUsers]);
+
   const activePremiums = allPremiumUsers.filter((u) => u.active);
   const pendingPayments = payments.filter((p) => p.status === "pending");
+
+  const handleGrant = async () => {
+    if (!grantUsername.trim()) return;
+    await grantPremium(grantUsername.trim(), grantEmail.trim(), "monthly", "admin");
+    setGrantUsername("");
+    setGrantEmail("");
+    setShowGrant(false);
+  };
 
   return (
     <div className="space-y-8 max-w-5xl">
@@ -51,7 +63,9 @@ const PsyPage = () => {
           </button>
         </div>
 
-        {showGrant && (
+        {loading && <p className="text-gray-500 text-sm py-4 text-center">Loading...</p>}
+
+        {!loading && showGrant && (
           <div className="bg-slate-800 rounded-lg p-4 mb-4 border border-green-500/20">
             <div className="flex justify-between items-center mb-3">
               <span className="text-sm font-semibold">Grant Premium (1 month)</span>
@@ -73,14 +87,7 @@ const PsyPage = () => {
                 className="flex-1 px-3 py-2 bg-slate-700 rounded-lg text-sm"
               />
               <button
-                onClick={() => {
-                  if (grantUsername.trim()) {
-                    grantPremium(grantUsername.trim(), grantEmail.trim(), "monthly", "admin");
-                    setGrantUsername("");
-                    setGrantEmail("");
-                    setShowGrant(false);
-                  }
-                }}
+                onClick={handleGrant}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold"
               >
                 Grant
@@ -89,7 +96,7 @@ const PsyPage = () => {
           </div>
         )}
 
-        {activePremiums.length === 0 ? (
+        {!loading && activePremiums.length === 0 ? (
           <p className="text-gray-500 text-sm py-4 text-center">No premium users yet</p>
         ) : (
           <div className="overflow-x-auto">

@@ -5,12 +5,13 @@ import { usePremiumStore, PLANS, type PlanId } from "@/store/premium-store";
 import { useAuthStore } from "@/store/auth-store";
 import { Crown, Zap, ShieldCheck, CheckCircle, Loader2, XCircle, CreditCard, Smartphone } from "lucide-react";
 import Link from "next/link";
+import { fetchAnimeGifs } from "@/lib/tenor";
 
 type Step = "plans" | "payment" | "verify" | "success";
 
 export default function PremiumPage() {
   const auth = useAuthStore();
-  const { isPremium, premiumUser, grantPremium, checkPremium } = usePremiumStore();
+  const { isPremium, premiumUser, grantPremium } = usePremiumStore();
   const [step, setStep] = useState<Step>("plans");
   const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
   const [email, setEmail] = useState("");
@@ -70,9 +71,16 @@ export default function PremiumPage() {
         return;
       }
 
-      grantPremium(username.trim(), email.trim(), selectedPlan!, "payment-utr");
+      await grantPremium(username.trim(), email.trim(), selectedPlan!, "payment-utr");
 
-      checkPremium(username.trim());
+      if (auth.auth) {
+        fetchAnimeGifs(1).then((gifs) => {
+          if (gifs.length > 0) {
+            auth.setAuth({ ...auth.auth!, avatar: gifs[0] });
+          }
+        });
+      }
+
       setStep("success");
       setSuccessMsg(`Premium activated! Your ${plan.label} plan is now active.`);
     } catch {

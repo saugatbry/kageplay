@@ -30,7 +30,6 @@ export type PremiumUser = {
   grantedAt: string;
 };
 
-const PREMIUM_KEY = "kage_premium_users";
 const PAYMENTS_KEY = "kage_payments";
 
 function loadJSON<T>(key: string, fallback: T): T {
@@ -48,20 +47,16 @@ function saveJSON(key: string, data: unknown) {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
-function calcExpiry(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString();
-}
-
 interface PremiumStore {
   isPremium: boolean;
   premiumUser: PremiumUser | null;
   allPremiumUsers: PremiumUser[];
   payments: Payment[];
-  checkPremium: (username: string) => void;
-  grantPremium: (username: string, email: string, plan: PlanId, grantedBy: string) => void;
-  revokePremium: (username: string) => void;
+  loading: boolean;
+  loadPremiumUsers: () => Promise<void>;
+  checkPremium: (username: string) => Promise<void>;
+  grantPremium: (username: string, email: string, plan: PlanId, grantedBy: string) => Promise<void>;
+  revokePremium: (username: string) => Promise<void>;
   addPayment: (p: Omit<Payment, "id" | "createdAt">) => void;
   approvePayment: (id: string) => void;
   rejectPayment: (id: string) => void;
@@ -71,47 +66,68 @@ interface PremiumStore {
 export const usePremiumStore = create<PremiumStore>((set, get) => ({
   isPremium: false,
   premiumUser: null,
-  allPremiumUsers: loadJSON<PremiumUser[]>(PREMIUM_KEY, []),
+  allPremiumUsers: [],
   payments: loadJSON<Payment[]>(PAYMENTS_KEY, []),
+  loading: false,
 
-  checkPremium: (username: string) => {
-    const users = get().allPremiumUsers;
-    const found = users.find(
-      (u) => u.username === username && u.active && new Date(u.premiumUntil) > new Date(),
-    );
-    set({ isPremium: !!found, premiumUser: found || null });
-  },
-
-  grantPremium: (username: string, email: string, plan: PlanId, grantedBy: string) => {
-    const users = get().allPremiumUsers;
-    const days = PLANS[plan].days;
-    const existing = users.findIndex((u) => u.username === username);
-    const entry: PremiumUser = {
-      username,
-      email,
-      premiumUntil: calcExpiry(days),
-      plan,
-      active: true,
-      grantedBy,
-      grantedAt: new Date().toISOString(),
-    };
-    let updated: PremiumUser[];
-    if (existing >= 0) {
-      updated = [...users];
-      updated[existing] = entry;
-    } else {
-      updated = [...users, entry];
+  loadPremiumUsers: async () => {
+    set({ loading: true });
+    try {
+      const res = await fetch("/api/premium/list");
+      const data = await res.json();
+      set({ allPremiumUsers: data.users || [] });
+    } catch {
+      set({ allPremiumUsers: [] });
     }
-    saveJSON(PREMIUM_KEY, updated);
-    set({ allPremiumUsers: updated });
+    set({ loading: false });
   },
 
-  revokePremium: (username: string) => {
-    const users = get().allPremiumUsers.map((u) =>
-      u.username === username ? { ...u, active: false } : u,
-    );
-    saveJSON(PREMIUM_KEY, users);
-    set({ allPremiumUsers: users, isPremium: false, premiumUser: null });
+  checkPremium: async (username: string) => {
+    if (!username) return;
+    try {
+      const res = await fetch(`/api/premium/check?username=${encodeURIComponent(username)}`);
+      const data = await res.json();
+      set({
+        isPremium: data.premium,
+        premiumUser: data.user
+          ? {
+              username: data.user.username,
+              email: data.user.email || "",
+              premiumUntil: data.user.premium_until,
+              plan: data.user.plan || "monthly",
+              active: data.user.active,
+              grantedBy: data.user.granted_by || "",
+              grantedAt: data.user.granted_at,
+            }
+          : null,
+      });
+    } catch {
+      set({ isPremium: false, premiumUser: null });
+    }
+  },
+
+  grantPremium: async (username: string, email: string, plan: PlanId, grantedBy: string) => {
+    try {
+      await fetch("/api/premium/grant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, plan, grantedBy }),
+      });
+      await get().loadPremiumUsers();
+      await get().checkPremium(username);
+    } catch {}
+  },
+
+  revokePremium: async (username: string) => {
+    try {
+      await fetch("/api/premium/revoke", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+      await get().loadPremiumUsers();
+      set({ isPremium: false, premiumUser: null });
+    } catch {}
   },
 
   addPayment: (p) => {
@@ -121,7 +137,7 @@ export const usePremiumStore = create<PremiumStore>((set, get) => ({
     set({ payments });
   },
 
-  approvePayment: (id: string) => {
+  approvePayment: async (id: string) => {
     const payments = get().payments.map((p) =>
       p.id === id ? { ...p, status: "approved" as const } : p,
     );
@@ -129,11 +145,11 @@ export const usePremiumStore = create<PremiumStore>((set, get) => ({
     set({ payments });
     const payment = payments.find((p) => p.id === id);
     if (payment) {
-      get().grantPremium(payment.username, payment.email, payment.plan, "payment-auto");
+      await get().grantPremium(payment.username, payment.email, payment.plan, "payment-auto");
     }
   },
 
-  rejectPayment: (id: string) => {
+  rejectPayment: async (id: string) => {
     const payments = get().payments.map((p) =>
       p.id === id ? { ...p, status: "rejected" as const } : p,
     );
@@ -141,7 +157,7 @@ export const usePremiumStore = create<PremiumStore>((set, get) => ({
     set({ payments });
     const payment = payments.find((p) => p.id === id);
     if (payment) {
-      get().revokePremium(payment.username);
+      await get().revokePremium(payment.username);
     }
   },
 
