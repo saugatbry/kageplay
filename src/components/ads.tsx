@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { usePremiumStore } from "@/store/premium-store";
+import { useAuthStore } from "@/store/auth-store";
 import { usePathname } from "next/navigation";
 import { ShieldAlert, X } from "lucide-react";
 
@@ -15,10 +16,12 @@ function randomDelay(min: number, max: number) {
 
 const Ads = () => {
   const pathname = usePathname();
-  const { isPremium } = usePremiumStore();
+  const { isPremium, checkPremium } = usePremiumStore();
+  const auth = useAuthStore();
   const [adblockDetected, setAdblockDetected] = useState(false);
   const [dismissBlock, setDismissBlock] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [premiumChecked, setPremiumChecked] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const socialLoadedRef = useRef(false);
 
@@ -26,6 +29,14 @@ const Ads = () => {
   const isExcluded = pathname?.startsWith("/psy") || pathname?.startsWith("/premium");
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    if (auth.auth?.username) {
+      checkPremium(auth.auth.username).then(() => setPremiumChecked(true));
+    } else {
+      setPremiumChecked(true);
+    }
+  }, [auth.auth?.username, checkPremium]);
 
   const loadScript = useCallback((src: string) => {
     const s = document.createElement("script");
@@ -51,19 +62,19 @@ const Ads = () => {
   }, [isWatchPage, loadPopad]);
 
   useEffect(() => {
-    if (isPremium || !mounted || isExcluded) return;
+    if (!premiumChecked || isPremium || !mounted || isExcluded) return;
     loadPopad();
     scheduleNext();
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [isPremium, mounted, isExcluded, loadPopad, scheduleNext]);
+  }, [premiumChecked, isPremium, mounted, isExcluded, loadPopad, scheduleNext]);
 
   useEffect(() => {
-    if (isPremium || isExcluded) return;
+    if (!premiumChecked || isPremium || isExcluded) return;
     if (!socialLoadedRef.current) {
       socialLoadedRef.current = true;
       loadScript(SOCIALBAR_SCRIPT);
     }
-  }, [isPremium, isExcluded, loadScript]);
+  }, [premiumChecked, isPremium, isExcluded, loadScript]);
 
   useEffect(() => {
     if (isExcluded) return;
@@ -105,7 +116,7 @@ const Ads = () => {
         </div>
       )}
 
-      {!isPremium && !adblockDetected && (
+      {!isPremium && !adblockDetected && premiumChecked && (
         <a
           href={SMARTLINK_URL}
           target="_blank"

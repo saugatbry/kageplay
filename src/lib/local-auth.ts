@@ -33,13 +33,27 @@ function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
-export function signup(username: string, email: string, password: string): { success: boolean; error?: string } {
+export async function signup(
+  username: string, email: string, password: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem("kageplay_user_source", "supabase");
+      return { success: true };
+    }
+    if (res.status === 409) {
+      return { success: false, error: "Username already taken" };
+    }
+  } catch {}
   const users = getUsers();
   if (users.find((u) => u.username === username)) {
     return { success: false, error: "Username already taken" };
-  }
-  if (users.find((u) => u.email === email)) {
-    return { success: false, error: "Email already registered" };
   }
   users.push({
     id: uid(),
@@ -50,23 +64,42 @@ export function signup(username: string, email: string, password: string): { suc
     autoSkip: false,
   });
   saveUsers(users);
+  localStorage.setItem("kageplay_user_source", "local");
   return { success: true };
 }
 
-export function login(username: string, password: string): { success: boolean; error?: string; user?: { id: string; username: string; email: string; avatar: string } } {
+export async function login(
+  username: string, password: string,
+): Promise<{ success: boolean; error?: string; user?: { id: string; username: string; email: string; avatar: string } }> {
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (data.success && data.user) {
+      localStorage.setItem("kageplay_user_source", "supabase");
+      return {
+        success: true,
+        user: {
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email || "",
+          avatar: data.user.avatar || "",
+        },
+      };
+    }
+  } catch {}
   const users = getUsers();
   const found = users.find((u) => u.username === username && u.password === hash(password));
   if (!found) {
     return { success: false, error: "Invalid username or password" };
   }
+  localStorage.setItem("kageplay_user_source", "local");
   return {
     success: true,
-    user: {
-      id: found.id,
-      username: found.username,
-      email: found.email,
-      avatar: found.avatar,
-    },
+    user: { id: found.id, username: found.username, email: found.email, avatar: found.avatar },
   };
 }
 

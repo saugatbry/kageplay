@@ -30,7 +30,7 @@ function LoginPopoverButton() {
       return;
     }
 
-    const result = login(formData.username, formData.password);
+    const result = await login(formData.username, formData.password);
     if (result.success && result.user) {
       toast.success("Login successful", { style: { background: "green" } });
       clearForm();
@@ -58,7 +58,7 @@ function LoginPopoverButton() {
       return;
     }
 
-    const result = signup(formData.username, formData.email, formData.password);
+    const result = await signup(formData.username, formData.email, formData.password);
     if (result.success) {
       toast.success("Account created successfully. Please login.", {
         style: { background: "green" },

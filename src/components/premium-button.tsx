@@ -30,12 +30,12 @@ export default function PremiumButton() {
     );
   }
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!formData.username || !formData.password) {
       toast.error("Please fill in all fields");
       return;
     }
-    const result = login(formData.username, formData.password);
+    const result = await login(formData.username, formData.password);
     if (result.success && result.user) {
       toast.success("Login successful");
       auth.setAuth({
@@ -54,12 +54,12 @@ export default function PremiumButton() {
     }
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!formData.username || !formData.password || !formData.email) {
       toast.error("Please fill in all fields");
       return;
     }
-    const result = signup(formData.username, formData.email, formData.password);
+    const result = await signup(formData.username, formData.email, formData.password);
     if (result.success) {
       toast.success("Account created. Please login.");
       setFormData({ username: "", email: "", password: "" });
