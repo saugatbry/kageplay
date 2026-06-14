@@ -1,15 +1,13 @@
 "use client";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePremiumStore } from "@/store/premium-store";
-import { useAuthStore } from "@/store/auth-store";
+import { useAuthHydrated, useAuthStore } from "@/store/auth-store";
 import { usePathname } from "next/navigation";
-import { ShieldAlert, X } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 
 const POPADS_SCRIPT = "https://pl29684527.effectivecpmnetwork.com/47/65/a3/4765a3a4b92dbb27c332caf217e2612e.js";
 const SMARTLINK_URL = "https://www.effectivecpmnetwork.com/gu2n4yhb?key=375952c0a0d7bdd2466f752a9e53b970";
 const SOCIALBAR_SCRIPT = "https://pl29684528.effectivecpmnetwork.com/23/ba/7f/23ba7fc3a137a0d1657183daf7b87caa.js";
-const INSTAGRAM = "https://instagram.com/psyflowz";
-
 function randomDelay(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min) * 1000;
 }
@@ -17,11 +15,12 @@ function randomDelay(min: number, max: number) {
 const Ads = () => {
   const pathname = usePathname();
   const { isPremium, checkPremium } = usePremiumStore();
-  const auth = useAuthStore();
+  const { auth } = useAuthStore();
+  const hasHydrated = useAuthHydrated();
   const [adblockDetected, setAdblockDetected] = useState(false);
   const [dismissBlock, setDismissBlock] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [premiumChecked, setPremiumChecked] = useState(false);
+  const [premiumConfirmed, setPremiumConfirmed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const socialLoadedRef = useRef(false);
 
@@ -31,60 +30,56 @@ const Ads = () => {
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (auth.auth?.username) {
-      checkPremium(auth.auth.username).then(() => setPremiumChecked(true));
+    if (!hasHydrated) return;
+    if (auth?.username) {
+      checkPremium(auth.username).then(() => setPremiumConfirmed(true));
     } else {
-      setPremiumChecked(true);
+      setPremiumConfirmed(true);
     }
-  }, [auth.auth?.username, checkPremium]);
-
-  const loadScript = useCallback((src: string) => {
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    document.head.appendChild(s);
-    return s;
-  }, []);
-
-  const loadPopad = useCallback(() => {
-    loadScript(POPADS_SCRIPT);
-  }, [loadScript]);
-
-  const scheduleNext = useCallback(() => {
-    const min = isWatchPage ? 420 : 180;
-    const max = isWatchPage ? 900 : 480;
-    const delay = randomDelay(min, max);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      loadPopad();
-      scheduleNext();
-    }, delay);
-  }, [isWatchPage, loadPopad]);
+  }, [hasHydrated, auth?.username, checkPremium]);
 
   useEffect(() => {
-    if (!premiumChecked || isPremium || !mounted || isExcluded) return;
-    loadPopad();
-    scheduleNext();
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [premiumChecked, isPremium, mounted, isExcluded, loadPopad, scheduleNext]);
-
-  useEffect(() => {
-    if (!premiumChecked || isPremium || isExcluded) return;
-    if (!socialLoadedRef.current) {
-      socialLoadedRef.current = true;
-      loadScript(SOCIALBAR_SCRIPT);
-    }
-  }, [premiumChecked, isPremium, isExcluded, loadScript]);
-
-  useEffect(() => {
-    if (isExcluded) return;
+    if (isPremium || isExcluded) return;
     const bait = document.createElement("script");
     bait.src = POPADS_SCRIPT;
     bait.async = true;
     bait.onerror = () => setAdblockDetected(true);
     document.head.appendChild(bait);
     return () => { bait.remove(); };
-  }, [isExcluded]);
+  }, [isPremium, isExcluded]);
+
+  useEffect(() => {
+    if (!premiumConfirmed || isPremium || !mounted || isExcluded) return;
+    const s = document.createElement("script");
+    s.src = POPADS_SCRIPT;
+    s.async = true;
+    document.head.appendChild(s);
+    const min = isWatchPage ? 420 : 180;
+    const max = isWatchPage ? 900 : 480;
+    const schedule = () => {
+      const delay = randomDelay(min, max);
+      timerRef.current = setTimeout(() => {
+        const ss = document.createElement("script");
+        ss.src = POPADS_SCRIPT;
+        ss.async = true;
+        document.head.appendChild(ss);
+        schedule();
+      }, delay);
+    };
+    schedule();
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [premiumConfirmed, isPremium, mounted, isExcluded, isWatchPage]);
+
+  useEffect(() => {
+    if (!premiumConfirmed || isPremium || isExcluded) return;
+    if (!socialLoadedRef.current) {
+      socialLoadedRef.current = true;
+      const s = document.createElement("script");
+      s.src = SOCIALBAR_SCRIPT;
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  }, [premiumConfirmed, isPremium, isExcluded]);
 
   if (!mounted || isExcluded) return null;
 
@@ -98,25 +93,17 @@ const Ads = () => {
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               Kindly turn off your AdBlock. Ads help me fund server costs and keep this site running for free.
             </p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => { setDismissBlock(true); loadPopad(); }}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition-colors"
-              >
-                I turned it off
-              </button>
-              <button
-                onClick={() => window.open(INSTAGRAM, "_blank")}
-                className="px-6 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 rounded-lg text-sm font-semibold transition-colors"
-              >
-                Get Premium
-              </button>
-            </div>
+            <button
+              onClick={() => { setDismissBlock(true); }}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition-colors"
+            >
+              I turned it off
+            </button>
           </div>
         </div>
       )}
 
-      {!isPremium && !adblockDetected && premiumChecked && (
+      {premiumConfirmed && !isPremium && !adblockDetected && (
         <a
           href={SMARTLINK_URL}
           target="_blank"
