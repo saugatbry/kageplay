@@ -18,6 +18,7 @@ import LoginPopoverButton from "./login-popover-button";
 import PremiumButton from "./premium-button";
 import { useAuthStore } from "@/store/auth-store";
 import { useProviderStore } from "@/store/provider-store";
+import { useSettingsStore } from "@/store/settings-store";
 import NavbarAvatar from "./navbar-avatar";
 
 const menuItems: Array<{ title: string; href?: string; premium?: boolean }> = [
@@ -39,10 +40,13 @@ const menuItems: Array<{ title: string; href?: string; premium?: boolean }> = [
 const NavBar = () => {
   const auth = useAuthStore();
   const { provider, setProvider } = useProviderStore();
+  const { adsEnabled, load: loadSettings } = useSettingsStore();
   const { y } = useScrollPosition();
   const isHeaderSticky = y > 0;
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [showTip, setShowTip] = useState(true);
+
+  useEffect(() => { loadSettings(); }, [loadSettings]);
 
   return (
     <nav
@@ -99,7 +103,7 @@ const NavBar = () => {
         </div>
 
         <div className="hidden lg:flex items-center gap-10 ml-20">
-          {menuItems.map((menu, idx) =>
+          {menuItems.filter((m) => !m.premium || adsEnabled).map((menu, idx) =>
             menu.premium ? (
               <Link
                 key={idx}
@@ -121,11 +125,11 @@ const NavBar = () => {
           {auth.auth ? <NavbarAvatar auth={auth} /> : <LoginPopoverButton />}
         </div>
         <div className="lg:hidden flex items-center gap-1.5 sm:gap-2">
-          <PremiumButton />
+          {adsEnabled && <PremiumButton />}
           <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)} aria-label={mobileSearchOpen ? "Close search" : "Open search"} aria-expanded={mobileSearchOpen}>
             <SearchIcon suppressHydrationWarning className="h-5 w-5" />
           </button>
-          <MobileMenuSheet trigger={<MenuIcon suppressHydrationWarning aria-label="Open menu" />} />
+          <MobileMenuSheet adsEnabled={adsEnabled} trigger={<MenuIcon suppressHydrationWarning aria-label="Open menu" />} />
           {auth.auth && <NavbarAvatar auth={auth} />}
         </div>
       </Container>
@@ -138,7 +142,7 @@ const NavBar = () => {
   );
 };
 
-const MobileMenuSheet = ({ trigger }: { trigger: ReactNode }) => {
+const MobileMenuSheet = ({ trigger, adsEnabled }: { trigger: ReactNode; adsEnabled: boolean }) => {
   const [open, setOpen] = useState<boolean>(false);
   const { provider, setProvider } = useProviderStore();
   return (
@@ -155,7 +159,7 @@ const MobileMenuSheet = ({ trigger }: { trigger: ReactNode }) => {
             <X />
           </SheetClose>
           <div className="flex flex-col gap-5 mt-10">
-            {menuItems.map((menu, idx) =>
+            {menuItems.filter((m) => !m.premium || adsEnabled).map((menu, idx) =>
               menu.premium ? (
                 <Link
                   href={menu.href || "#"}

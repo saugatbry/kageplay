@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { usePremiumStore } from "@/store/premium-store";
+import { useSettingsStore } from "@/store/settings-store";
 import { useAuthHydrated, useAuthStore } from "@/store/auth-store";
 import { usePathname } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
@@ -8,6 +9,7 @@ import { ShieldAlert } from "lucide-react";
 const POPADS_SCRIPT = "https://pl29684527.effectivecpmnetwork.com/47/65/a3/4765a3a4b92dbb27c332caf217e2612e.js";
 const SMARTLINK_URL = "https://www.effectivecpmnetwork.com/gu2n4yhb?key=375952c0a0d7bdd2466f752a9e53b970";
 const SOCIALBAR_SCRIPT = "https://pl29684528.effectivecpmnetwork.com/23/ba/7f/23ba7fc3a137a0d1657183daf7b87caa.js";
+
 function randomDelay(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min) * 1000;
 }
@@ -15,6 +17,7 @@ function randomDelay(min: number, max: number) {
 const Ads = () => {
   const pathname = usePathname();
   const { isPremium, checkPremium } = usePremiumStore();
+  const { adsEnabled, loaded: settingsLoaded, load: loadSettings } = useSettingsStore();
   const { auth } = useAuthStore();
   const hasHydrated = useAuthHydrated();
   const [adblockDetected, setAdblockDetected] = useState(false);
@@ -27,7 +30,7 @@ const Ads = () => {
   const isWatchPage = pathname?.startsWith("/anime/watch");
   const isExcluded = pathname?.startsWith("/psy") || pathname?.startsWith("/premium");
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); loadSettings(); }, [loadSettings]);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -39,17 +42,19 @@ const Ads = () => {
   }, [hasHydrated, auth?.username, checkPremium]);
 
   useEffect(() => {
-    if (isPremium || isExcluded) return;
+    if (!settingsLoaded || !premiumConfirmed || isPremium || isExcluded) return;
+    if (!adsEnabled) return;
     const bait = document.createElement("script");
     bait.src = POPADS_SCRIPT;
     bait.async = true;
     bait.onerror = () => setAdblockDetected(true);
     document.head.appendChild(bait);
     return () => { bait.remove(); };
-  }, [isPremium, isExcluded]);
+  }, [settingsLoaded, premiumConfirmed, isPremium, isExcluded, adsEnabled]);
 
   useEffect(() => {
-    if (!premiumConfirmed || isPremium || !mounted || isExcluded) return;
+    if (!settingsLoaded || !premiumConfirmed || isPremium || !mounted || isExcluded) return;
+    if (!adsEnabled) return;
     const s = document.createElement("script");
     s.src = POPADS_SCRIPT;
     s.async = true;
@@ -68,10 +73,11 @@ const Ads = () => {
     };
     schedule();
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [premiumConfirmed, isPremium, mounted, isExcluded, isWatchPage]);
+  }, [settingsLoaded, premiumConfirmed, isPremium, mounted, isExcluded, isWatchPage, adsEnabled]);
 
   useEffect(() => {
-    if (!premiumConfirmed || isPremium || isExcluded) return;
+    if (!settingsLoaded || !premiumConfirmed || isPremium || isExcluded) return;
+    if (!adsEnabled) return;
     if (!socialLoadedRef.current) {
       socialLoadedRef.current = true;
       const s = document.createElement("script");
@@ -79,9 +85,11 @@ const Ads = () => {
       s.async = true;
       document.head.appendChild(s);
     }
-  }, [premiumConfirmed, isPremium, isExcluded]);
+  }, [settingsLoaded, premiumConfirmed, isPremium, isExcluded, adsEnabled]);
 
   if (!mounted || isExcluded) return null;
+  if (!settingsLoaded) return null;
+  if (!adsEnabled) return null;
 
   return (
     <>
@@ -103,7 +111,7 @@ const Ads = () => {
         </div>
       )}
 
-      {premiumConfirmed && !isPremium && !adblockDetected && (
+      {settingsLoaded && premiumConfirmed && !isPremium && !adblockDetected && (
         <a
           href={SMARTLINK_URL}
           target="_blank"

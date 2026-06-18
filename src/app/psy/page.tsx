@@ -1,20 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 import { usePremiumStore } from "@/store/premium-store";
-import { Users, Banknote, ShieldCheck, X, Clock } from "lucide-react";
+import { useSettingsStore } from "@/store/settings-store";
+import { Users, Banknote, ShieldCheck, X, Clock, Eye, EyeOff } from "lucide-react";
 
 const PsyPage = () => {
   const {
     allPremiumUsers, grantPremium, revokePremium,
     payments, loadPremiumUsers, loading,
   } = usePremiumStore();
+  const { adsEnabled, setAdsEnabled, load: loadSettings } = useSettingsStore();
   const [showGrant, setShowGrant] = useState(false);
   const [grantUsername, setGrantUsername] = useState("");
   const [grantEmail, setGrantEmail] = useState("");
 
   useEffect(() => {
     loadPremiumUsers();
-  }, [loadPremiumUsers]);
+    loadSettings();
+  }, [loadPremiumUsers, loadSettings]);
 
   const activePremiums = allPremiumUsers.filter((u) => u.active);
   const pendingPayments = payments.filter((p) => p.status === "pending");
@@ -172,18 +175,37 @@ const PsyPage = () => {
       {/* Additional Tools */}
       <div className="bg-slate-900 border border-white/5 rounded-xl p-5">
         <h2 className="font-semibold mb-3">Tools</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {[
-            { label: "Clear All Premium", action: () => { allPremiumUsers.forEach((u) => revokePremium(u.username)); }, color: "red" },
-          ].map((tool) => (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-slate-800 rounded-lg px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold flex items-center gap-2">
+                {adsEnabled ? <Eye className="h-4 w-4 text-green-400" /> : <EyeOff className="h-4 w-4 text-red-400" />}
+                Ads
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {adsEnabled ? "Ads showing, premium button visible" : "No ads, premium button hidden"}
+              </p>
+            </div>
             <button
-              key={tool.label}
-              onClick={tool.action}
-              className={`px-4 py-3 bg-${tool.color}-600/10 border border-${tool.color}-500/20 rounded-lg text-sm hover:bg-${tool.color}-600/20 transition-colors text-left`}
+              onClick={() => setAdsEnabled(!adsEnabled)}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                adsEnabled ? "bg-green-600" : "bg-gray-600"
+              }`}
             >
-              {tool.label}
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+                  adsEnabled ? "translate-x-6" : "translate-x-0"
+                }`}
+              />
             </button>
-          ))}
+          </div>
+
+          <button
+            onClick={() => { allPremiumUsers.forEach((u) => revokePremium(u.username)); }}
+            className="w-full px-4 py-3 bg-red-600/10 border border-red-500/20 rounded-lg text-sm hover:bg-red-600/20 transition-colors text-left"
+          >
+            Clear All Premium
+          </button>
         </div>
       </div>
     </div>
