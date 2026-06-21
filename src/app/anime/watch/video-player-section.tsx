@@ -92,8 +92,6 @@ const VideoPlayerSection = () => {
 
   const [serverName, setServerName] = useState<string>("");
   const [key, setKey] = useState<string>("");
-  const [iframeError, setIframeError] = useState(false);
-
   useEffect(() => {
     const { serverName, key } = getFallbackServer(serversData);
     setServerName(serverName);
@@ -201,27 +199,16 @@ const VideoPlayerSection = () => {
               <span className="text-sm text-gray-500">This episode is not available yet</span>
             </div>
           ) : embedUrl ? (
-            <div className="relative w-full h-full">
-              <iframe
-                src={embedUrl}
-                width="100%"
-                height="100%"
-                allow="autoplay; encrypted-media; fullscreen"
-                allowFullScreen
-                sandbox="allow-scripts allow-same-origin allow-forms"
-                {...(isHindi ? { scrolling: "no" } : {})}
-                style={{ border: 0 }}
-                onError={() => setIframeError(true)}
-              ></iframe>
-              <a
-                href={embedUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded hover:bg-black/90 transition z-10"
-              >
-                Open in new tab
-              </a>
-            </div>
+            <iframe
+              src={embedUrl}
+              width="100%"
+              height="100%"
+              allow="autoplay; encrypted-media; fullscreen"
+              allowFullScreen
+              sandbox="allow-scripts allow-same-origin allow-forms"
+              {...(isHindi ? { scrolling: "no" } : {})}
+              style={{ border: 0 }}
+            ></iframe>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">
               Loading player...
