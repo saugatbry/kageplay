@@ -10,4 +10,8 @@ export interface IAnimeScheduleItem {
   airingTimestamp: number;
   secondsUntilAiring: number;
   episode: number;
+  airingDay?: string;
+  slug?: string;
+  type?: string;
+  poster?: string;
 }
