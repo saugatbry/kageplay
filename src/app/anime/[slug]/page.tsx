@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import WatchButton from "@/components/watch-button";
 import { useProviderStore } from "@/store/provider-store";
-import { useGetMalId } from "@/query/get-mal-id";
 import { IAnime } from "@/types/anime";
 import AnimeCarousel from "@/components/anime-carousel";
 import AnimeEpisodes from "@/components/anime-episodes";
@@ -86,9 +85,6 @@ const Page = () => {
   const { data: banner, isLoading: bannerLoading } = useGetAnimeBanner(
     malId ?? 0,
   );
-  const animeTitle = anime?.anime?.info?.name;
-  const { data: searchMalId } = useGetMalId(animeTitle ?? "");
-
   const seasonOptions: ISelectOptions[] = (anime?.seasons || []).map((s) => ({
     value: s.id,
     label: s.name,
@@ -190,7 +186,7 @@ const Page = () => {
                   onChange={handleSeasonChange}
                 />
               )}
-              <WatchButton provider={provider} malId={provider === 'subdub' && searchMalId ? String(searchMalId) : null} />
+              <WatchButton provider={provider} />
               {auth && (
                 <Select
                   placeholder="Add to list"
@@ -337,3 +333,4 @@ const Page = () => {
 };
 
 export default Page;
+

@@ -112,7 +112,7 @@ const HeroSection = (props: IHeroSectionProps) => {
                           Learn More
                         </ButtonLink>
                         <ButtonLink
-                          href={`${ROUTES.WATCH}?anime=${anime.id}&episode=${anime.id}-1`}
+                          href={`${ROUTES.WATCH}?anime=${anime.id}&episode=1`}
                           className="h-10 px-5 text-sm sm:text-base bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 rounded-lg"
                         >
                           Watch Now

@@ -7,14 +7,14 @@ function extractAnimeSlug(fullSlug: string): string {
   return fullSlug.split("/ep-")[0];
 }
 
-function buildEpisodeId(slug: string, epNumber: number): string {
-  return `${slug}__ep${epNumber}`;
+function buildEpisodeId(_slug: string, epNumber: number): string {
+  return String(epNumber);
 }
 
 function parseEpisodeId(episodeId: string): { slug: string; epNumber: number } | null {
-  const match = /^(.+)__ep(\d+)$/.exec(episodeId);
-  if (match) return { slug: match[1], epNumber: parseInt(match[2], 10) };
-  return null;
+  const num = parseInt(episodeId, 10);
+  if (isNaN(num)) return null;
+  return { slug: "", epNumber: num };
 }
 
 function mapAnimeItem(item: any, rank?: number) {
@@ -54,7 +54,11 @@ async function fetchApi<T = any>(path: string): Promise<T> {
 export const anikoto = {
   async getHomePage() {
     try {
-      const home = await fetchApi<any>("/");
+      const [home, moviesData, newlyAddedData] = await Promise.all([
+        fetchApi<any>("/"),
+        fetchApi<any>("/type/movie?page=1").catch(() => ({ data: [] })),
+        fetchApi<any>("/newly-added?page=1").catch(() => ({ data: [] })),
+      ]);
       const spotlights = (home.spotlights || []).slice(0, 8).map((s: any, i: number) => {
         const slug = extractAnimeSlug(s.slug);
         const startDate = s.date ? s.date.split(" to ")[0]?.trim() || "" : "";
@@ -83,13 +87,17 @@ export const anikoto = {
       const trendingList = (home.trending || []).slice(0, 25).map(mapAnimeItem);
       const topAiringList = (home.topAiring || []).slice(0, 25).map(mapAnimeItem);
       const genres = home.genres || [];
+
+      const movieList = (moviesData?.data || []).slice(0, 15).map(mapAnimeItem);
+      const recentlyAdded = (newlyAddedData?.data || []).slice(0, 20).map(mapAnimeItem);
+
       const allAnime = [...trendingList, ...topAiringList.filter((a: any) => !trendingList.some((t: any) => t.id === a.id))];
 
       return {
         spotlightAnimes: spotlights,
         trendingAnimes: topAiringList.slice(0, 15),
         latestEpisodeAnimes: allAnime.slice(0, 20),
-        topUpcomingAnimes: [],
+        topUpcomingAnimes: topAiringList.slice(0, 10),
         top10Animes: {
           today: allAnime.slice(0, 10),
           week: trendingList.slice(0, 10),
@@ -100,6 +108,8 @@ export const anikoto = {
         mostFavoriteAnimes: [...allAnime].sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0)).slice(0, 15),
         latestCompletedAnimes: [],
         genres,
+        movies: movieList,
+        recentlyAdded,
       };
     } catch (error) {
       console.error("Error fetching AniKoto home page:", error);
@@ -107,7 +117,7 @@ export const anikoto = {
         spotlightAnimes: [], trendingAnimes: [], latestEpisodeAnimes: [],
         topUpcomingAnimes: [], top10Animes: { today: [], week: [], month: [] },
         topAiringAnimes: [], mostPopularAnimes: [], mostFavoriteAnimes: [],
-        latestCompletedAnimes: [], genres: [],
+        latestCompletedAnimes: [], genres: [], movies: [], recentlyAdded: [],
       };
     }
   },
@@ -126,7 +136,7 @@ export const anikoto = {
           info: {
             id: slug,
             anilistId: info.animeId ? Number(info.animeId) : 0,
-            malId: info.animeId ? Number(info.animeId) : 0,
+            malId: 0,
             name: info.title || "Unknown",
             poster: info.poster || "",
             banner: info.backgroundImage || "",

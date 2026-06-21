@@ -9,7 +9,6 @@ import { ButtonLink } from "./common/button-link";
 
 type Props = {
   provider: "subdub" | "hindi";
-  malId?: string | null;
 };
 
 function getFirstEpisodeSlug(slug: string): string {
@@ -18,7 +17,7 @@ function getFirstEpisodeSlug(slug: string): string {
   return `${slug}-${season}x1`;
 }
 
-const WatchButton = ({ provider, malId }: Props) => {
+const WatchButton = ({ provider }: Props) => {
   const pathName = usePathname();
   const slug = pathName.split("/")[2];
 
@@ -34,12 +33,9 @@ const WatchButton = ({ provider, malId }: Props) => {
     );
   }
 
-  const animeId = malId || slug;
-  const episodeId = malId ? `${malId}-1` : getFirstEpisodeSlug(slug);
-
   return (
     <ButtonLink
-      href={`${ROUTES.WATCH}?anime=${animeId}&episode=${episodeId}&type=subdub`}
+      href={`${ROUTES.WATCH}?anime=${slug}&episode=1&type=subdub`}
       className="max-w-fit text-base"
       LeftIcon={CirclePlay}
     >
