@@ -1,7 +1,6 @@
+import { anikoto } from "@/lib/anikoto";
 import { aniverse } from "@/lib/aniverse";
 import { SearchAnimeParams } from "@/types/anime";
-
-const JIKAN_API = "https://api.jikan.moe/v4";
 
 function normalizeTitle(title: string): string {
   return (title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -36,33 +35,23 @@ export async function GET(request: Request) {
     }
 
     if (provider === "subdub") {
-      const jikanRaw = await fetch(
-        `${JIKAN_API}/anime?q=${encodeURIComponent(params.q)}&page=${params.page}&limit=20`,
-        {
-          headers: { "User-Agent": "Mozilla/5.0" },
-          signal: AbortSignal.timeout(10000),
-        },
-      ).then((r) => r.json()).catch(() => ({ data: [], pagination: { last_visible_page: 1, has_next_page: false } }));
+      const subdubResults = await anikoto.search(params.q, params.page).catch(() => ({
+        animes: [], totalPages: 1, hasNextPage: false, currentPage: 1,
+      }));
 
-      let jikanAnimes = (jikanRaw.data || []).map((item: any) => ({
-        id: String(item.mal_id),
-        name: item.title_english || item.title || "Unknown",
-        jname: item.title_japanese || "",
-        poster: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || "",
-        episodes: { sub: item.episodes || null, dub: null },
-        type: item.type || "TV",
-        rank: item.rank || null,
+      let subdubAnimes = (subdubResults?.animes || []).map((a: any) => ({
+        ...a,
         provider: "subdub" as const,
       }));
 
-      if (!jikanAnimes.length) {
+      if (!subdubAnimes.length) {
         const hindiResults = await aniverse.search(params.q, params.page).catch(() => ({
           animes: [], totalPages: 1, hasNextPage: false, currentPage: 1,
         }));
-        jikanAnimes = (hindiResults?.animes || []).map((a: any) => ({ ...a, provider: "subdub" as const }));
+        subdubAnimes = (hindiResults?.animes || []).map((a: any) => ({ ...a, provider: "subdub" as const }));
         return Response.json({
           data: {
-            animes: jikanAnimes,
+            animes: subdubAnimes,
             totalPages: hindiResults?.totalPages || 1,
             hasNextPage: hindiResults?.hasNextPage || false,
             currentPage: params.page,
@@ -72,30 +61,21 @@ export async function GET(request: Request) {
 
       return Response.json({
         data: {
-          animes: jikanAnimes,
-          totalPages: jikanRaw.pagination?.last_visible_page || 1,
-          hasNextPage: jikanRaw.pagination?.has_next_page || false,
+          animes: subdubAnimes,
+          totalPages: subdubResults?.totalPages || 1,
+          hasNextPage: subdubResults?.hasNextPage || false,
           currentPage: params.page,
         },
       });
     }
 
-    const [hindiResults, jikanRaw] = await Promise.all([
+    const [hindiResults, subdubResults] = await Promise.all([
       aniverse.search(params.q, params.page).catch(() => ({ animes: [], totalPages: 1, hasNextPage: false, currentPage: 1 })),
-      fetch(`${JIKAN_API}/anime?q=${encodeURIComponent(params.q)}&page=${params.page}&limit=20`, {
-        headers: { "User-Agent": "Mozilla/5.0" },
-        signal: AbortSignal.timeout(10000),
-      }).then((r) => r.json()).catch(() => ({ data: [], pagination: { last_visible_page: 1, has_next_page: false } })),
+      anikoto.search(params.q, params.page).catch(() => ({ animes: [], totalPages: 1, hasNextPage: false, currentPage: 1 })),
     ]);
 
-    const jikanAnimes = (jikanRaw.data || []).map((item: any) => ({
-      id: String(item.mal_id),
-      name: item.title_english || item.title || "Unknown",
-      jname: item.title_japanese || "",
-      poster: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || "",
-      episodes: { sub: item.episodes || null, dub: null },
-      type: item.type || "TV",
-      rank: item.rank || null,
+    const subdubAnimes = (subdubResults?.animes || []).map((item: any) => ({
+      ...item,
       provider: "subdub" as const,
     }));
 
@@ -108,7 +88,7 @@ export async function GET(request: Request) {
     for (const item of hindiAnimes) {
       mergedMap.set(normalizeTitle(item.name), { ...item });
     }
-    for (const item of jikanAnimes) {
+    for (const item of subdubAnimes) {
       const key = normalizeTitle(item.name);
       if (mergedMap.has(key)) {
         const existing = mergedMap.get(key);
@@ -129,8 +109,8 @@ export async function GET(request: Request) {
     return Response.json({
       data: {
         animes: merged,
-        totalPages: Math.max(jikanRaw.pagination?.last_visible_page || 1, hindiResults?.totalPages || 1),
-        hasNextPage: jikanRaw.pagination?.has_next_page || hindiResults?.hasNextPage || false,
+        totalPages: Math.max(subdubResults?.totalPages || 1, hindiResults?.totalPages || 1),
+        hasNextPage: subdubResults?.hasNextPage || hindiResults?.hasNextPage || false,
         currentPage: params.page,
       },
     });

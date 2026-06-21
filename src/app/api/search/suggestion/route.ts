@@ -1,6 +1,5 @@
+import { anikoto } from "@/lib/anikoto";
 import { aniverse } from "@/lib/aniverse";
-
-const JIKAN_API = "https://api.jikan.moe/v4";
 
 function normalizeTitle(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -22,48 +21,28 @@ export async function GET(request: Request) {
     }
 
     if (provider === "subdub") {
-      const jikanRaw = await fetch(`${JIKAN_API}/anime?q=${encodeURIComponent(q)}&limit=8&page=1`, {
-        headers: { "User-Agent": "Mozilla/5.0" },
-        signal: AbortSignal.timeout(8000),
-      }).then((r) => r.json()).catch(() => ({ data: [] }));
+      const subdubResults = await anikoto.searchSuggestions(q).catch(() => []);
 
-      let jikanResults = (jikanRaw.data || []).map((item: any) => ({
-        id: String(item.mal_id),
-        name: item.title_english || item.title || "Unknown",
-        jname: item.title_japanese || "",
-        poster: item.images?.jpg?.image_url || "",
-        type: item.type || "TV",
-        rank: item.rank || null,
-        episodes: { sub: item.episodes || null, dub: null },
-        moreInfo: (item.genres || []).map((g: any) => g.name),
+      let subdubMapped = (subdubResults || []).map((item: any) => ({
+        ...item,
         provider: "subdub" as const,
       }));
 
-      if (!jikanResults.length) {
+      if (!subdubMapped.length) {
         const hindiSuggestions = await aniverse.searchSuggestions(q).catch(() => []);
-        jikanResults = (hindiSuggestions || []).map((item: any) => ({ ...item, provider: "subdub" as const }));
+        subdubMapped = (hindiSuggestions || []).map((item: any) => ({ ...item, provider: "subdub" as const }));
       }
 
-      return Response.json({ data: jikanResults.slice(0, 12) });
+      return Response.json({ data: subdubMapped.slice(0, 12) });
     }
 
-    const [hindiResults, jikanRaw] = await Promise.all([
+    const [hindiResults, subdubResults] = await Promise.all([
       aniverse.searchSuggestions(q).catch(() => []),
-      fetch(`${JIKAN_API}/anime?q=${encodeURIComponent(q)}&limit=8&page=1`, {
-        headers: { "User-Agent": "Mozilla/5.0" },
-        signal: AbortSignal.timeout(8000),
-      }).then((r) => r.json()).catch(() => ({ data: [] })),
+      anikoto.searchSuggestions(q).catch(() => []),
     ]);
 
-    const jikanResults = (jikanRaw.data || []).map((item: any) => ({
-      id: String(item.mal_id),
-      name: item.title_english || item.title || "Unknown",
-      jname: item.title_japanese || "",
-      poster: item.images?.jpg?.image_url || "",
-      type: item.type || "TV",
-      rank: item.rank || null,
-      episodes: { sub: item.episodes || null, dub: null },
-      moreInfo: (item.genres || []).map((g: any) => g.name),
+    const subdubMapped = (subdubResults || []).map((item: any) => ({
+      ...item,
       provider: "subdub" as const,
     }));
 
@@ -78,7 +57,7 @@ export async function GET(request: Request) {
       mergedMap.set(normalizeTitle(item.name), { ...item });
     }
 
-    for (const item of jikanResults) {
+    for (const item of subdubMapped) {
       const key = normalizeTitle(item.name);
       if (mergedMap.has(key)) {
         const existing = mergedMap.get(key);
