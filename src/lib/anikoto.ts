@@ -7,14 +7,14 @@ function extractAnimeSlug(fullSlug: string): string {
   return fullSlug.split("/ep-")[0];
 }
 
-function buildEpisodeId(_slug: string, epNumber: number): string {
-  return String(epNumber);
+function buildEpisodeId(slug: string, epNumber: number): string {
+  return `${slug}-${epNumber}`;
 }
 
 function parseEpisodeId(episodeId: string): { slug: string; epNumber: number } | null {
-  const num = parseInt(episodeId, 10);
-  if (isNaN(num)) return null;
-  return { slug: "", epNumber: num };
+  const match = /^(.+)-(\d+)$/.exec(episodeId);
+  if (match) return { slug: match[1], epNumber: parseInt(match[2], 10) };
+  return null;
 }
 
 function mapAnimeItem(item: any, rank?: number) {

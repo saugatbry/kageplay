@@ -129,7 +129,7 @@ const Layout = (props: Props) => {
   useEffect(() => {
     if (!episodeId && episodes?.episodes && episodes.episodes.length > 0 && currentAnimeId) {
       const params = new URLSearchParams(searchParams.toString());
-      params.set("episode", episodes.episodes[0].episodeId);
+      params.set("episode", String(episodes.episodes[0].number));
       router.replace(`${ROUTES.WATCH}?${params.toString()}`);
     }
   }, [episodeId, episodes, currentAnimeId, router, searchParams]);
@@ -152,7 +152,9 @@ const Layout = (props: Props) => {
 
   useEffect(() => {
     if (episodeId && episodes?.episodes) {
-      const current = episodes.episodes.find((ep) => ep.episodeId === episodeId);
+      const current = episodes.episodes.find(
+        (ep) => ep.episodeId === episodeId || String(ep.number) === episodeId,
+      );
       if (current?.season) setActiveSeason(current.season);
     }
   }, [episodeId, episodes]);

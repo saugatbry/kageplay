@@ -51,7 +51,13 @@ const VideoPlayerSection = () => {
   const activeEpisode = episodeId || selectedEpisode;
   const activeEpisodeId = activeEpisode;
 
-  const { data: serversData } = useGetEpisodeServers(activeEpisode, watchType as string);
+  const compoundEpisodeId = activeEpisode?.includes("-")
+    ? activeEpisode
+    : animeId
+      ? `${animeId}-${activeEpisode}`
+      : activeEpisode;
+
+  const { data: serversData } = useGetEpisodeServers(compoundEpisodeId, watchType as string);
   const { data: episodesData } = useGetAllEpisodes(animeId ?? "", watchType as string);
 
   const isHindi = watchType === "hindi";
@@ -59,9 +65,9 @@ const VideoPlayerSection = () => {
   const currentEpIndex = useMemo(() => {
     if (!episodesData?.episodes) return -1;
     return episodesData.episodes.findIndex(
-      (ep) => ep.episodeId === activeEpisode,
+      (ep) => ep.episodeId === compoundEpisodeId || String(ep.number) === activeEpisode,
     );
-  }, [episodesData, activeEpisode]);
+  }, [episodesData, compoundEpisodeId, activeEpisode]);
 
   const currentEpisode = useMemo(() => {
     if (currentEpIndex < 0 || !episodesData?.episodes) return null;
@@ -107,7 +113,7 @@ const VideoPlayerSection = () => {
   const episodeDataCategory = isHindi ? "sub" : key;
 
   const { data: episodeData } = useGetEpisodeData(
-    selectedEpisode,
+    compoundEpisodeId,
     episodeDataKey,
     episodeDataCategory,
     watchType as string,
@@ -173,7 +179,7 @@ const VideoPlayerSection = () => {
   const handleNextEpisode = () => {
     if (!nextEpisode) return;
     const params = new URLSearchParams(searchParams.toString());
-    params.set("episode", nextEpisode.episodeId);
+    params.set("episode", String(nextEpisode.number));
     router.push(`/anime/watch?${params.toString()}`);
   };
 
